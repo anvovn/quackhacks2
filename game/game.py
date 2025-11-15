@@ -43,7 +43,7 @@ def make_grid(levelFile):
             if (lineNum < height-2):
                 txtLine = line.strip()
                 grid.append(decode_tiles(txtLine))
-            if (lineNum >= height-2):
+            if (lineNum > height-2):
                 txtLine = line.strip()
                 chestTable.append(decode_tiles(txtLine))
             lineNum += 1
