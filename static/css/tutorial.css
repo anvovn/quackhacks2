@@ -46,3 +46,10 @@ p{
     color: black;
     transition: none
 }
+#back-button{
+    margin: 0.2vw;
+    font-size: 2vw;
+    background-color: rgb(30, 200, 32);
+    color: whitesmoke;
+    border-color: green;
+}
