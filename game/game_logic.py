@@ -1,5 +1,8 @@
 import time
 import math
+import sys
+import termios
+import tty
 
 # Basic information 
 NIGHT_DURATION = 10
@@ -10,6 +13,7 @@ FLOOR_TIMER = 90
 PLAYER_HEALTH = 10
 PLAYER_MOVEMENT = 1
 PLAYER_ATTACK = 2
+PLAYER_POSITION = [0, 0]
 
 # Every enemy will inherit from this (including bosses because I'm lazy)
 class BaseEnemy:
@@ -78,6 +82,73 @@ def game_time_loop():
         elif remaining_ft <= 0:
             floor_time_is_up()
         time.sleep(1)
+
+# Movement
+
+basic_solid = {"#", "E"}   # walls, enemies, etc—cannot walk through
+pass_through = {"-", " ", "<", "?", "c", "p", "^", "v", "="}
+
+def move_player(grid, player_pos, direction):
+    x, y = player_pos
+
+    # movement offsets
+    offsets = {
+        "w": (0, -1),
+        "s": (0, 1),
+        "a": (-1, 0),
+        "d": (1, 0)
+    }
+
+    if direction not in offsets:
+        return player_pos  # no movement
+
+    dx, dy = offsets[direction]
+    nx, ny = x + dx, y + dy
+
+    # bounds check
+    if ny < 0 or ny >= len(grid): 
+        return player_pos
+    if nx < 0 or nx >= len(grid[0]):
+        return player_pos
+
+    target = grid[ny][nx][0]  # char part of tile code  
+
+    # Collision logic
+    if target in basic_solid:
+        return player_pos  # can't move into walls/enemies
+
+    # Door check (requires key)
+    if target == "=":
+        print("Door blocked—you need a key!")
+        return player_pos
+
+    # Pickup key
+    if target == "<":
+        print("Picked up a key!")
+
+    # Staircases
+    if target in {"^", "v"}:
+        print("Stairs: change floors here")
+
+    # Chest
+    if target == "c":
+        print("Opened chest!")
+
+    # Move player on grid
+    grid[y][x] = "-"         # old position becomes empty floor
+    grid[ny][nx] = "*"       # new position becomes player
+
+    return (nx, ny)
+    
+def getch():
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        ch = sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ch
 
 def main():
     game_time_loop()
