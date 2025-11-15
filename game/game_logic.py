@@ -1,13 +1,15 @@
 import time
+import math
 
 # Basic information 
-NIGHT_DURATION = 240
+NIGHT_DURATION = 10
 NIGHT = 1
 FLOOR_TIMER = 90
 
 # Player won't have class (unless player complexity gets high enough to benefit from class usage)
 PLAYER_HEALTH = 10
-
+PLAYER_MOVEMENT = 1
+PLAYER_ATTACK = 2
 
 # Every enemy will inherit from this (including bosses because I'm lazy)
 class BaseEnemy:
@@ -53,23 +55,32 @@ def restart_night(night):
 def display_countdown(current_time):
     print(f'Time: {NIGHT_DURATION - current_time} s')
 
+# Gameplay functions 
 def floor_time_is_up():
     for i in range(10):
         Ghost()
+
+def valid_attack(target):
+    return
 
 # The time loop so far
 def game_time_loop():
     print(f'Night {NIGHT} has begun')
     start_time = time.time()
-    floor_time = time.time()
     while True:
-        time_passed = time.time - start_time
-        remaining_time = NIGHT_DURATION - time_passed
-        remaining_ft = FLOOR_TIMER - time_passed
+        time_passed = time.time() - start_time
+        remaining_time = math.floor(NIGHT_DURATION - time_passed)
+        remaining_ft = math.floor(FLOOR_TIMER - time_passed)
+        print(f'Time left: {remaining_time}')
         if remaining_time <= 0:
             update_night(NIGHT)
             break
         elif remaining_ft <= 0:
             floor_time_is_up()
-        time.sleep(0.1)
+        time.sleep(1)
 
+def main():
+    game_time_loop()
+
+if __name__ == "__main__":
+    main()
