@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (newBtn) {
 		newBtn.addEventListener('click', () => {
 			// navigate to ingame page (adjust path if your server routes differ)
-			window.location.href = 'ingame.html';
+			window.location.href = 'tutorial.html';
 		});
 	}
 
