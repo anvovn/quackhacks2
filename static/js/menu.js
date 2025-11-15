@@ -1,7 +1,8 @@
+// UI interactions
 document.addEventListener('DOMContentLoaded', () => {
 	const newBtn = document.getElementById('new-game');
-	const contBtn = document.getElementById('continue-game');
 	const settingsBtn = document.getElementById('settings');
+    const startBtn = document.getElementById('start-button');
 	const creditsBtn = document.getElementById('credits');
 
 	if (newBtn) {
@@ -20,6 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (creditsBtn) {
 		creditsBtn.addEventListener('click', () => {
 			window.location.href = 'credits.html';
+		});
+	}
+
+	// Start button on tutorial -> go to game
+	if (startBtn) {
+		startBtn.addEventListener('click', () => {
+			window.location.href = 'game.html';
 		});
 	}
 
@@ -46,4 +54,5 @@ document.addEventListener('DOMContentLoaded', () => {
 			applyTheme(now);
 		});
 	}
+
 });
