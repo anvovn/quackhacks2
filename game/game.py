@@ -28,7 +28,6 @@ def decode_tiles(line):
 
 def make_grid(levelFile):
 
-    print("Start")
     grid = []
     valueGrid = []
     chestTable =[#((value it changes, how much it changes by),(...)...)
@@ -73,13 +72,13 @@ def make_grid(levelFile):
     for x in range(width):
         #print(x,len(test_row))
         if x < len(test_row):
-            grid[height-1][x] = test_row[x]
+            pass
 
     #print grid
     for y in range(height):
         for x in range(width):
             print(grid[y][x], end = '')
-        print("y" + str(y))
+        print()
 
     for y in range(height):
         tmpgrid = []
@@ -94,11 +93,12 @@ def make_grid(levelFile):
                 tile_values[1] = int(tile[1:])
             tmpgrid.append(tile_values)
         valueGrid.append(tmpgrid)
-
+    grid[5][5] = "*"
+        # Find player
+    player_pos = None
     for y in range(height):
-        print(valueGrid[y])
+        for x in range(width):
+            if grid[y][x][0] == "*":   # tile begins with player symbol
+                player_pos = (x, y)
 
-    return(width,height,valueGrid,chestTable)
-
-
-w, h, vg, ct = make_grid("level_0.txt")
+    return (width, height, valueGrid, chestTable, grid, player_pos)
