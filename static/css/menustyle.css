@@ -1,0 +1,143 @@
+/* Pixel-art aesthetic CSS */
+:root{
+	--bg-1: #071020; /* darkest */
+	--bg-2: #0b1630;
+	--panel: #071a2a;
+	--accent: #e6fff8;
+	--accent-dark: #e6fff8;
+	--text: #e6fff8;
+	--border: #e6fff8;
+}
+
+/* Reset / base */
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	background-color: var(--bg-1);
+	background-image: url("/assets/backgrounds/pixelai.png");
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
+	color: var(--text);
+	font-family: 'Press Start 2P', monospace;
+	-webkit-font-smoothing: none;
+	-moz-osx-font-smoothing: grayscale;
+	image-rendering: pixelated;
+}
+
+/* Night mode background (switch via JS by toggling `night-mode` on <body>) */
+body.night-mode{
+    background-image: url("/assets/backgrounds/pixelai_night.png");
+}
+
+/* subtle pixel grid overlay */
+/* body::before{
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background-image:
+		linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+	background-size: 12px 12px, 12px 12px;
+	opacity: 0.08;
+} */
+
+/* Center container */
+#main{
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1.2rem;
+	box-sizing: border-box;
+}
+
+/* Menu panel */
+.menu-container{
+	width: 100%;
+	max-width: 520px;
+	background: rgba(6,12,20,0.32); /* slight transparency */
+	backdrop-filter: blur(3px);
+	padding: 1.8rem;
+	box-sizing: border-box;
+	text-align: center;
+	margin: 0 auto;
+	border: 3px solid var(--border);
+	border-radius: 4px; /* keep slightly blocky */
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 10px 26px rgba(2,6,23,0.6);
+	transform: translateY(6vh); /* small downward offset */
+}
+
+.title{
+	margin: 0 0 1rem 0;
+	font-size: 14px;
+	color: var(--accent);
+}
+
+.menu{
+	display: grid;
+	grid-template-columns: 1fr; /* single column always */
+	gap: 0.9rem;
+}
+
+.menu-button{
+	display: inline-block;
+	padding: 12px 10px;
+	font-family: 'Press Start 2P', monospace;
+	font-size: 10px;
+	color: var(--text);
+	background: var(--panel);
+	border: 3px solid var(--accent-dark);
+	border-radius: 4px;
+	cursor: pointer;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	transition: none; /* instant change like pixel UI */
+	box-shadow: none;
+}
+
+.menu-button:active{
+	background: #04232a;
+	border-color: var(--accent);
+}
+
+.menu-button:hover{
+	filter: brightness(1.7);
+}
+
+@media (max-width: 420px){
+	.menu-container{ padding: 1rem; }
+	.title{ font-size: 10px; }
+	.menu-button{ padding: 10px 8px; font-size: 9px; }
+}
+
+/* Accessibility */
+.menu-button:focus{
+	outline: 3px solid var(--accent);
+	outline-offset: 0px;
+}
+
+.hidden { display: none !important; }
+
+/* Theme toggle button */
+.theme-toggle{
+	display: block;
+	margin: 1.1rem auto 0;
+	padding: 8px 12px;
+	font-family: 'Press Start 2P', monospace;
+	font-size: 10px;
+	color: var(--text);
+	background: rgba(8,16,24,0.36);
+	border: 2px solid white;
+	border-radius: 6px;
+	cursor: pointer;
+	text-transform: none;
+}
+
+/* Slight visual change when active */
+.theme-toggle[aria-pressed="true"]{
+	box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+	border-color: var(--accent);
+}
