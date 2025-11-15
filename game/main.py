@@ -12,13 +12,14 @@ def main():
     while True:
         os.system("cls" if os.name == "nt" else "clear")
         print_grid(grid)
+        print(vg)
         key = getch().lower()
         if key == "q":
             break
         if key in ("w", "a", "s", "d"):
-            player_pos = move_player(grid, player_pos, key)
+            player_pos = move_player(grid, vg, player_pos, key)
 
-        time.sleep(0.05)
+        time.sleep(0.1)
 
 if __name__ == "__main__":
     main()

@@ -3,6 +3,7 @@ import math
 import sys
 import termios
 import tty
+from game import *
 
 # Basic information 
 NIGHT_DURATION = 10
@@ -13,7 +14,6 @@ FLOOR_TIMER = 90
 PLAYER_HEALTH = 10
 PLAYER_MOVEMENT = 1
 PLAYER_ATTACK = 2
-PLAYER_POSITION = [0, 0]
 
 # Every enemy will inherit from this (including bosses because I'm lazy)
 class BaseEnemy:
@@ -88,7 +88,10 @@ def game_time_loop():
 basic_solid = {"#", "E"}   # walls, enemies, etc—cannot walk through
 pass_through = {"-", " ", "<", "?", "c", "p", "^", "v", "="}
 
-def move_player(grid, player_pos, direction):
+basic_solid = {"#", "E"}   # walls, enemies, etc—cannot walk through
+pass_through = {"-", " ", "<", "?", "c", "p", "^", "v", "="}
+
+def move_player(grid, value_grid, player_pos, direction):
     x, y = player_pos
 
     # movement offsets
@@ -111,35 +114,53 @@ def move_player(grid, player_pos, direction):
     if nx < 0 or nx >= len(grid[0]):
         return player_pos
 
-    target = grid[ny][nx][0]  # char part of tile code  
+    tile_char = grid[ny][nx][0]
+    tile_value = value_grid[ny][nx]
 
-    # Collision logic
-    if target in basic_solid:
-        return player_pos  # can't move into walls/enemies
+    # ------------------------------------------------
+    # COLLISION / INTERACTION LOGIC
+    # ------------------------------------------------
 
-    # Door check (requires key)
-    if target == "=":
-        print("Door blocked—you need a key!")
+    # solid collision
+    if tile_char in basic_solid:
         return player_pos
 
-    # Pickup key
-    if target == "<":
-        print("Picked up a key!")
+    # door collision (needs key)
+    if tile_char == "=":
+        print("Door blocked — you need a key!")
+        return player_pos
 
-    # Staircases
-    if target in {"^", "v"}:
-        print("Stairs: change floors here")
+    # Key pickup
+    if tile_char == "<":
+        print("Picked up a key!")
+        # we could add key inventory logic later
+
+    # Stairs
+    if tile_char == "^":
+        print("Stairs going UP")
+    if tile_char == "v":
+        print("Stairs going DOWN")
 
     # Chest
-    if target == "c":
+    if tile_char == "c":
         print("Opened chest!")
 
-    # Move player on grid
-    grid[y][x] = "-"         # old position becomes empty floor
-    grid[ny][nx] = "*"       # new position becomes player
+    # ------------------------------------------------
+    # MOVE PLAYER (grid & value_grid)
+    # ------------------------------------------------
+
+    # 1. Clear the old position
+    grid[y][x] = "-"  
+    value_grid[y][x] = basic_tiles["-"][:]   # copy so we don't mutate base
+
+    # 2. Move into the new tile
+    grid[ny][nx] = "*"
+    # Create a valueGrid tile for the player:
+    # basic_tiles["*"] = [3, -2] unless number is overwritten later
+    value_grid[ny][nx] = basic_tiles["*"][:]  # copy to avoid shared ref issues
 
     return (nx, ny)
-    
+
 def getch():
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
