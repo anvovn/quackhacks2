@@ -57,7 +57,7 @@ html, body {
   font-size: 12px;
 }
 
-.back-button:hover{ filter: brightness(1.05); }
+.back-button:hover{ filter: brightness(1.7); }
 
 /* Make sure the content remains readable on small screens */
 @media (max-width: 520px){
