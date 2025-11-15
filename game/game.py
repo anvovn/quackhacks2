@@ -18,6 +18,8 @@ Used to change the second tuple value:
 tile_type = tile[0]
 tile_number = int(tile[1:])
 """
+import os
+import re
 
 def decode_tiles(line):
     pattern = r".\d*"     # one character, followed by zero or more digits
@@ -33,17 +35,24 @@ def make_grid(levelFile):
 
     width = 0
     height = 0
-    lineNum = 0
-    with open(levelFile, "r") as f:
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    level_path = os.path.join(script_dir, "..", "assets", "levels", levelFile)
+
+    with open(level_path, "r") as f:
+        lineNum = 0
         txtLine = ""
         txtList = []
-        width = f[0].strip()
-        height = f[1].strip()
+        width_line = f.readline().strip()
+        height_line = f.readline().strip()
+
+        width = int(width_line.split("=")[1])
+        height = int(height_line.split("=")[1])
         for line in f:
-            if (lineNum < height-2):
+            if (lineNum < height):
                 txtLine = line.strip()
                 grid.append(decode_tiles(txtLine))
-            if (lineNum > height-2):
+            if (lineNum > height):
                 txtLine = line.strip()
                 chestTable.append(decode_tiles(txtLine))
             lineNum += 1
@@ -58,7 +67,7 @@ def make_grid(levelFile):
                 tmpgrid.append("-")
         grid.append(tmpgrid)
     """
-
+    
     test_row = ["p21","c9","^1","v1","@1","E1","?1","<1","=1"]
     for x in range(width):
         #print(x,len(test_row))
