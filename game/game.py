@@ -100,5 +100,5 @@ def make_grid(levelFile):
         for x in range(width):
             if grid[y][x][0] == "*":   # tile begins with player symbol
                 player_pos = (x, y)
-
+                
     return (width, height, valueGrid, chestTable, grid, player_pos)
