@@ -17,6 +17,8 @@ html, body {
 	background-color: var(--bg-1);
 	background-image: url("/assets/backgrounds/pixelai.png");
 	background-size: cover;
+	/* keep the background fixed so scrolling doesn't expose other layers */
+	background-attachment: fixed;
 	background-position: center center;
 	background-repeat: no-repeat;
 	color: var(--text);
@@ -29,6 +31,7 @@ html, body {
 /* Night mode background (switch via JS by toggling `night-mode` on <body>) */
 body.night-mode{
     background-image: url("/assets/backgrounds/pixelai_night.png");
+	background-attachment: fixed;
 }
 
 /* subtle pixel grid overlay */
