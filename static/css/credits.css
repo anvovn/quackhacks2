@@ -1,0 +1,66 @@
+/* Credits page styles - keeps the same background from menustyle.css and provides a centered, full-height card */
+
+.credits-container{
+  /* ensure the credits page does not scroll by fixing the viewport usage */
+  height: 100vh; /* exactly the viewport height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem; /* reduce padding so content fits */
+  box-sizing: border-box;
+  overflow: hidden; /* prevent page scrolling */
+}
+
+/* prevent body scrolling only on the credits page */
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.credits-card{
+  width: 100%;
+  max-width: 880px;
+  background: rgba(6,12,20,0.36); /* slightly transparent so background shows through */
+  border: 3px solid rgba(230,255,248,0.9);
+  border-radius: 6px;
+  padding: 1.4rem; /* reduce padding to fit better */
+  box-shadow: 0 14px 34px rgba(2,6,23,0.6);
+  color: var(--text);
+  font-family: 'Press Start 2P', monospace;
+  /* make sure the card itself doesn't cause the page to scroll */
+  max-height: calc(100vh - 2.4rem);
+  overflow: hidden;
+}
+
+.credits-card h1{
+  margin-top: 0;
+  /* margin-bottom: 1rem; */
+  color: var(--accent);
+  font-size: 20px;
+}
+
+.credits-section{ margin-bottom: 1.1rem; }
+.credits-section h2{ margin: 0 0 0.6rem 0; font-size: 12px; }
+.credits-section ul{ margin: 0 0 0.6rem 1.1rem; padding: 0; }
+.credits-section li{ margin-bottom: 0.4rem; font-size: 11px; }
+
+.credits-actions{ text-align: center; margin-top: 1.2rem; }
+.back-button{
+  display: inline-block;
+  padding: 10px 14px;
+  background: #083046;
+  color: var(--text);
+  border: 3px solid var(--accent);
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.back-button:hover{ filter: brightness(1.05); }
+
+/* Make sure the content remains readable on small screens */
+@media (max-width: 520px){
+  .credits-card{ padding: 1rem; }
+  .credits-card h1{ font-size: 16px; }
+}
