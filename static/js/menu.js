@@ -2,8 +2,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 	const newBtn = document.getElementById('new-game');
 	const settingsBtn = document.getElementById('settings');
-    const startBtn = document.getElementById('start-button');
 	const creditsBtn = document.getElementById('credits');
+    const startBtn = document.getElementById('start-button');
+    const backBtn = document.getElementById('back-button');
 
 	if (newBtn) {
 		newBtn.addEventListener('click', () => {
@@ -30,6 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			window.location.href = 'game.html';
 		});
 	}
+
+    if (backBtn) {
+        backBtn.addEventListener('click', function () {
+            // Navigate to the index page
+            window.location.href = 'index.html';
+        });
+    }
 
 	// Theme toggle: switch between day and night backgrounds
 	const themeToggle = document.getElementById('theme-toggle');
