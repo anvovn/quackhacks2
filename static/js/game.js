@@ -24,6 +24,7 @@
   const HALF_VIEWPORT_ROWS = Math.floor(VIEWPORT_HEIGHT / (TILE_SIZE * 2));
 
   let visionSize = 350;
+  let visionCounter = 1800;
 
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) {
@@ -181,18 +182,6 @@
     return spriteMap[baseChar] || '/assets/art/concrete_floor.png';
   }
 
-  function shrinkVision(){
-
-    while(visionSize>=150){
-      visionSize -= 10;
-      sleep(100);
-    }
-    sleep(8000);
-    while(visionSize<=350){
-      visionSize += 10;
-      sleep(100);
-    }
-  }
 
   function draw(state) {
     const grid = state.grid;
@@ -257,9 +246,20 @@
     let randomNumber = Math.floor(Math.random() * 1800) + 1;
 
   // Check if the number is the specific success value (e.g., 800)
-    if (randomNumber === 800) {
-      shrinkVision();
+  if(visionCounter<=0){
+    while(visionSize>=150){
+      visionSize -= 5;
+      sleep(200);
     }
+    sleep(8000);
+    while(visionSize<=350){
+      visionSize += 5;
+      sleep(200);
+    }
+  }
+  else{
+    visionCounter--;
+  }
 
     // draw player sprite centered on screen
     if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
