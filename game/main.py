@@ -7,7 +7,7 @@ def print_grid(grid):
         print("".join(row))
 
 def main():
-    w, h, vg, ct, grid, player_pos = make_grid("level_0.txt")
+    w, h, vg, ct, grid, player_pos = make_grid("floor0.txt")
 
     while True:
         os.system("cls" if os.name == "nt" else "clear")

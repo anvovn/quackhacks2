@@ -90,10 +90,13 @@ def make_grid(levelFile):
         for x in range(width):
             if grid[y][x][0] == "*":
                 player_pos = (x, y)
+                # Replace the player marker with a floor tile so the sprite is drawn on top
+                grid[y][x] = " "
+                valueGrid[y][x] = basic_tiles[" "][:]
     if player_pos is None:
         # fallback
-        player_pos = (1, 1)
-        grid[1][1] = "*"
-        valueGrid[1][1] = basic_tiles["*"][:]
+        player_pos = (28, 4)
+        grid[1][1] = " "
+        valueGrid[1][1] = basic_tiles[" "][:]
 
     return width, height, valueGrid, chestTable, grid, player_pos
