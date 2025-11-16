@@ -18,7 +18,9 @@ PLAYER_HEALTH = 10
 PLAYER_ATTACK = 2
 
 collectedKeys = set()     # set of key ids collected
-#collectedKeys.add(1)
+# collectedKeys.add(1)
+# collectedKeys.add(2)
+# collectedKeys.add(9)
 gridChanges = []          # list of (floor, x, y, state0, state1)
 enemyStates = []          # placeholder for enemy instances/state
 
@@ -272,17 +274,24 @@ def move_player(direction):
 
     if tile_char == "^":
         print("Going up a floor!")
-        GS.message = "Going up a floor!"
+        # Check if we're on level 6 (final level) - if so, game is complete
+        if GS.floor == 6:
+            print("Game completed!")
+            GS.message = "You escaped!"
+            GS.game_complete = True
+            return GS.player_pos
+        
         GS.floor = tile_val[1]//100
+        GS.message = "Going up a floor! Current Floor: " + str(GS.floor + 1)
         new_level(GS.floor,tile_val[1]%100)
         return GS.player_pos
     
     if tile_char == "v":
         print("Going down a floor!")
-        GS.message = "Going down a floor!"
         # Don't go below floor 0
         if GS.floor > 0:
             GS.floor = tile_val[1]//100
+            GS.message = "Going down a floor! Current Floor: " + str(GS.floor - 1)
             new_level(GS.floor,tile_val[1]%100)
         return GS.player_pos
 

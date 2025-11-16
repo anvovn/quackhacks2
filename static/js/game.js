@@ -302,6 +302,12 @@
         if (state.message) {
           showMessage(state.message);
         }
+        // Check if game is complete
+        if (state.game_complete) {
+          console.log('Game complete! Redirecting to end screen...');
+          window.location.href = 'end.html';
+          return;
+        }
         draw(state);
       } catch (err) {
         console.error('Failed to parse state', err, evt.data);
