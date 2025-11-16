@@ -34,78 +34,66 @@ def decode_tiles(line):
     return re.findall(pattern, line.strip())
 
 def make_grid(levelFile):
-
     grid = []
     valueGrid = []
-    chestTable =[#((value it changes, how much it changes by),(...)...)
-    ]
+    chestTable = []
 
-    width = 0
-    height = 0
-
+    # --- FIX PATH ---
+    # Level files are in ../assets/levels relative to game.py
     script_dir = os.path.dirname(os.path.abspath(__file__))
     level_path = os.path.join(script_dir, "..", "assets", "levels", levelFile)
+    level_path = os.path.normpath(level_path)  # clean up any ../
 
+    if not os.path.exists(level_path):
+        raise FileNotFoundError(f"Level file not found at {level_path}")
+
+    # --- Read level file ---
     with open(level_path, "r") as f:
         lineNum = 0
-        txtLine = ""
-        txtList = []
         width_line = f.readline().strip()
         height_line = f.readline().strip()
 
         width = int(width_line.split("=")[1])
         height = int(height_line.split("=")[1])
         for line in f:
-            if (lineNum < height):
+            if lineNum < height:
                 txtLine = line.strip()
                 grid.append(decode_tiles(txtLine))
-            if (lineNum > height):
+            else:
                 txtLine = line.strip()
                 chestTable.append(decode_tiles(txtLine))
             lineNum += 1
-    """
-    #make grid
+
+    # --- Build valueGrid ---
     for y in range(height):
         tmpgrid = []
         for x in range(width):
-            if(x == 0 or x == width-1 or y == 0 or y == height-2):
-                tmpgrid.append("#")
-            else:
-                tmpgrid.append("-")
-        grid.append(tmpgrid)
-    """
-    
-    test_row = ["p21","c9","^1","v1","@1","E1","?1","<1","=1"]
-    for x in range(width):
-        #print(x,len(test_row))
-        if x < len(test_row):
-            pass
-
-    #print grid
-    for y in range(height):
-        for x in range(width):
-            print(grid[y][x], end = '')
-        print()
-
-    for y in range(height):
-        tmpgrid = []
-        for x in range(width): 
             tile = grid[y][x]
             key = tile[0]
             if key not in basic_tiles:
                 tmpgrid.append((-1,-1))
                 continue
-            tile_values = basic_tiles[tile[0]]
-            if (tile_values[1] == -1):
+            tile_values = basic_tiles[tile[0]][:]
+            if tile_values[1] == -1:
                 tile_values[1] = int(tile[1:])
             tmpgrid.append(tile_values)
         valueGrid.append(tmpgrid)
-    grid[5][5] = "*"
-        # Find player
+
+    for y in range(height):
+        for x in range(width):
+            print(grid[y][x][0], end = '')
+        print()
+
+    # --- Find player position ---
     player_pos = None
     for y in range(height):
         for x in range(width):
-            if grid[y][x][0] == "*":   # tile begins with player symbol
+            if grid[y][x][0] == "*":
                 player_pos = (x, y)
-                
-    return (width, height, valueGrid, chestTable, grid, player_pos)
+    if player_pos is None:
+        # fallback
+        player_pos = (1, 1)
+        grid[1][1] = "*"
+        valueGrid[1][1] = basic_tiles["*"][:]
+
+    return width, height, valueGrid, chestTable, grid, player_pos
