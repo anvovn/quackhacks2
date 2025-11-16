@@ -156,8 +156,8 @@
       '<': '/assets/art/Keycard.png',                // keycard
       '?': '/assets/art/cardboard_box.png',          // interactable
       'E': '/assets/art/attack_roomba.png',          // enemy
-      '^': '/assets/art/StairsVertical.png',         // staircase up
-      'v': '/assets/art/StairsVertical.png',         // staircase down
+      '^': '/assets/art/UpStair.png',         // staircase up
+      'v': '/assets/art/DownStair.png',         // staircase down
       '@': '/assets/art/concrete_floor.png',         // start
       'c': '/assets/art/Chest.png',                  // chest
       'p': '/assets/art/cardboard_box.png'           // powerup
