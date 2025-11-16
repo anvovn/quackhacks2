@@ -10,17 +10,17 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from game import *
 from game_logic import *
+import game_state as GS  # <-- Use GS instead of globals
 
 # --- Flask App Setup ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-app = Flask(__name__, 
+app = Flask(
+    __name__,
     template_folder=os.path.join(BASE_DIR, 'templates'),
-    static_folder=os.path.join(BASE_DIR, 'static'))
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
 
 @app.route('/')
-def main_page():
-    return render_template('index.html')
-
 @app.route('/index')
 @app.route('/index.html')
 def index():
@@ -51,105 +51,80 @@ def serve_assets(filename):
     assets_dir = os.path.join(BASE_DIR, 'assets')
     return send_from_directory(assets_dir, filename)
 
-# --- WebSocket Game Server ---
+# --- Initialize Game State ---
 level_path = os.path.join(BASE_DIR, 'assets/levels/floor0new.txt')
 
-# Initialize game state with error handling
 try:
     print(f"Loading level from: {level_path}")
     if not os.path.exists(level_path):
-        print(f"ERROR: Level file not found at {level_path}")
-        print(f"Contents of assets dir: {os.listdir(os.path.join(BASE_DIR, 'assets'))}")
         raise FileNotFoundError(f"Level file not found: {level_path}")
-    
-    w, h, vg, ct, grid, player_pos = make_grid(level_path)
-    print(f"✓ Level loaded successfully: {w}x{h} grid, player at {player_pos}")
+
+    # Unpack returned values into GS
+    GS.w, GS.h, GS.vg, GS.ct, GS.grid, GS.player_pos = make_grid(level_path)
+    print(f"✓ Level loaded: {GS.w}x{GS.h}, player at {GS.player_pos}")
 except Exception as e:
     print(f"✗ Failed to load level: {e}")
     import traceback
     traceback.print_exc()
-    # Create a minimal fallback grid
-    print("Creating fallback 10x10 grid...")
-    grid = [[' ' for _ in range(10)] for _ in range(10)]
-    for i in range(10):
-        grid[0][i] = grid[9][i] = grid[i][0] = grid[i][9] = '#'
-    player_pos = [5, 5]
-    vg = grid  # Simplified visibility grid
-    w, h = 10, 10
 
+    # Fallback grid
+    GS.w, GS.h = 10, 10
+    GS.grid = [[' ' for _ in range(GS.w)] for _ in range(GS.h)]
+    for i in range(GS.w):
+        GS.grid[0][i] = GS.grid[GS.h-1][i] = '#'
+        GS.grid[i][0] = GS.grid[i][GS.w-1] = '#'
+    GS.player_pos = [5, 5]
+    GS.vg = GS.grid  # simple fallback
+    GS.basic_tiles = {}
+
+# --- Serialize GS for WebSocket ---
 def serialize_state():
-    try:
-        tiles = basic_tiles
-    except NameError:
-        tiles = {}
     return {
-        "grid": grid,
-        "player": {"x": player_pos[0], "y": player_pos[1]},
-        "basic_tiles": tiles
+        "grid": GS.grid,
+        "player": {"x": GS.player_pos[0], "y": GS.player_pos[1]},
+        "basic_tiles": GS.basic_tiles
     }
 
+# --- WebSocket Handler ---
 async def handler(ws):
-    global player_pos, vg, grid
     while True:
         try:
             # Send game state
             await ws.send(json.dumps(serialize_state()))
-            
+
             # Receive input from JS
             try:
                 msg = await asyncio.wait_for(ws.recv(), timeout=0.03)
             except asyncio.TimeoutError:
                 msg = None
-            
+
             if msg:
                 data = json.loads(msg)
                 direction = data.get("move")
                 if direction in ("w", "a", "s", "d"):
-                    player_pos = move_player(grid, vg, player_pos, direction)
-            
+                    GS.player_pos = move_player(direction)  # move_player returns new pos
+
             await asyncio.sleep(0.03)
         except websockets.exceptions.ConnectionClosed:
             break
 
 async def websocket_server():
-    try:
-        # Bind to 0.0.0.0 to accept connections from outside the container
-        async with websockets.serve(handler, "0.0.0.0", 8765):
-            print("✓ WebSocket server running at ws://0.0.0.0:8765")
-            print("  Clients can connect via ws://<your-ip>:8765")
-            await asyncio.Future()
-    except Exception as e:
-        print(f"✗ WebSocket server failed to start: {e}")
-        import traceback
-        traceback.print_exc()
+    async with websockets.serve(handler, "0.0.0.0", 8765):
+        print("✓ WebSocket server running at ws://0.0.0.0:8765")
+        await asyncio.Future()  # run forever
 
 def run_websocket():
-    try:
-        print("WebSocket thread started, initializing asyncio...")
-        asyncio.run(websocket_server())
-    except Exception as e:
-        print(f"✗ WebSocket thread crashed: {e}")
-        import traceback
-        traceback.print_exc()
+    asyncio.run(websocket_server())
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    # Debug: Print paths to verify
-    print(f"BASE_DIR: {BASE_DIR}")
-    print(f"Templates: {os.path.join(BASE_DIR, 'templates')}")
-    print(f"Static: {os.path.join(BASE_DIR, 'static')}")
-    print(f"Assets: {os.path.join(BASE_DIR, 'assets')}")
-    
-    # Start WebSocket server in separate thread
-    print("Starting WebSocket server thread...")
+    # Start WebSocket server thread
     ws_thread = Thread(target=run_websocket, daemon=True)
     ws_thread.start()
-    
+
     # Give WebSocket time to start
     import time
     time.sleep(1)
-    
+
     # Start Flask server
-    print("Flask server starting on http://0.0.0.0:5000")
-    print("Game page will be at http://0.0.0.0:5000/game")
     app.run(host="0.0.0.0", port=5000, debug=False)
