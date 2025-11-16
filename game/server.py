@@ -52,30 +52,35 @@ def serve_assets(filename):
     return send_from_directory(assets_dir, filename)
 
 # --- Initialize Game State ---
-level_path = os.path.join(BASE_DIR, 'assets/levels/floor0new.txt')
+level_path = os.path.join(BASE_DIR, 'assets/levels/level_0.txt')
 
-try:
-    print(f"Loading level from: {level_path}")
-    if not os.path.exists(level_path):
-        raise FileNotFoundError(f"Level file not found: {level_path}")
+def initialize_game():
+    """Initialize or reset game state from the level file"""
+    try:
+        print(f"Loading level from: {level_path}")
+        if not os.path.exists(level_path):
+            raise FileNotFoundError(f"Level file not found: {level_path}")
 
-    # Unpack returned values into GS
-    GS.w, GS.h, GS.vg, GS.ct, GS.grid, GS.player_pos = make_grid(level_path)
-    print(f"✓ Level loaded: {GS.w}x{GS.h}, player at {GS.player_pos}")
-except Exception as e:
-    print(f"✗ Failed to load level: {e}")
-    import traceback
-    traceback.print_exc()
+        # Unpack returned values into GS
+        GS.w, GS.h, GS.vg, GS.ct, GS.grid, GS.player_pos = make_grid(level_path)
+        print(f"✓ Level loaded: {GS.w}x{GS.h}, player at {GS.player_pos}")
+    except Exception as e:
+        print(f"✗ Failed to load level: {e}")
+        import traceback
+        traceback.print_exc()
 
-    # Fallback grid
-    GS.w, GS.h = 10, 10
-    GS.grid = [[' ' for _ in range(GS.w)] for _ in range(GS.h)]
-    for i in range(GS.w):
-        GS.grid[0][i] = GS.grid[GS.h-1][i] = '#'
-        GS.grid[i][0] = GS.grid[i][GS.w-1] = '#'
-    GS.player_pos = [5, 5]
-    GS.vg = GS.grid  # simple fallback
-    GS.basic_tiles = {}
+        # Fallback grid
+        GS.w, GS.h = 10, 10
+        GS.grid = [[' ' for _ in range(GS.w)] for _ in range(GS.h)]
+        for i in range(GS.w):
+            GS.grid[0][i] = GS.grid[GS.h-1][i] = '#'
+            GS.grid[i][0] = GS.grid[i][GS.w-1] = '#'
+        GS.player_pos = [5, 5]
+        GS.vg = GS.grid  # simple fallback
+        GS.basic_tiles = {}
+
+# Initialize game on startup
+initialize_game()
 
 # --- Serialize GS for WebSocket ---
 def serialize_state():
@@ -87,6 +92,10 @@ def serialize_state():
 
 # --- WebSocket Handler ---
 async def handler(ws):
+    # Reset game state for this new connection
+    initialize_game()
+    print(f"New client connected, game reset to initial state")
+    
     while True:
         try:
             # Send game state
@@ -106,6 +115,7 @@ async def handler(ws):
 
             await asyncio.sleep(0.03)
         except websockets.exceptions.ConnectionClosed:
+            print("Client disconnected")
             break
 
 async def websocket_server():

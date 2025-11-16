@@ -2,7 +2,7 @@ from game_logic import *
 from game import *
 import os, time
 
-dimport game_state as GS
+import game_state as GS
 from game_logic import *
 
 def main():
