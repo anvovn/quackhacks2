@@ -17,6 +17,11 @@
   }
   const ctx = canvas.getContext('2d');
 
+  //Set up audio for footsteps
+    let footstepAudio = new Audio('../assets/audio/footsteps.wav'); 
+
+  //AUDIO END
+
   // set canvas to fixed viewport size
   canvas.style.width = VIEWPORT_WIDTH + 'px';
   canvas.style.height = VIEWPORT_HEIGHT + 'px';
@@ -286,7 +291,13 @@
     });
 
     // forward keyboard input and update player direction
+    window.addEventListener('keyup', (ev) => {
+      // Stop footstep audio when key is released
+      footstepAudio.pause(); 
+      footstepAudio.currentTime = 0;
+    })
     window.addEventListener('keydown', (ev) => {
+      footstepAudio.play(); 
       // Don't send movement commands if paused
       if (isPaused) return;
       
