@@ -1,0 +1,26 @@
+{
+  "name": "Escape From EMU Game",
+  "image": "mcr.microsoft.com/devcontainers/python:3.10",
+  
+  "forwardPorts": [5000, 8765],
+  "portsAttributes": {
+    "5000": {
+      "label": "Flask Server",
+      "onAutoForward": "notify"
+    },
+    "8765": {
+      "label": "WebSocket Server",
+      "onAutoForward": "notify"
+    }
+  },
+  
+  "postCreateCommand": "pip install -r requirements.txt",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  }
+}
