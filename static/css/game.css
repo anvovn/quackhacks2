@@ -5,8 +5,122 @@ body {
   align-items: center;
   height: 100vh;
   background: #202020;
+  font-family: 'Press Start 2P', monospace;
 }
 
 canvas {
   border: 2px solid white;
+}
+
+/* Pause button - top-left corner */
+#pauseButton {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  background: #083046;
+  color: #e6fff8;
+  border: 3px solid #e6fff8;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: none;
+}
+
+#pauseButton:hover {
+  filter: brightness(1.7);
+}
+
+#pauseButton:active {
+  background: #04232a;
+}
+
+/* Pause menu overlay */
+.pause-menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+  font-family: 'Press Start 2P', monospace;
+}
+
+.pause-menu.hidden {
+  display: none;
+}
+
+.pause-card {
+  background: rgba(6, 12, 20, 0.95);
+  border: 3px solid #e6fff8;
+  border-radius: 6px;
+  padding: 2rem;
+  text-align: center;
+  min-width: 300px;
+  box-shadow: 0 14px 34px rgba(2, 6, 23, 0.8);
+  font-family: 'Press Start 2P', monospace;
+}
+
+.pause-card h1 {
+  margin: 0 0 1.5rem 0;
+  color: #e6fff8;
+  font-size: 24px;
+  text-shadow: 0 0 10px rgba(230, 255, 248, 0.5);
+  font-family: 'Press Start 2P', monospace;
+}
+
+.pause-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pause-action-btn {
+  padding: 12px 20px;
+  background: #083046;
+  color: #e6fff8;
+  border: 3px solid #e6fff8;
+  border-radius: 6px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: none;
+}
+
+.pause-action-btn:hover {
+  filter: brightness(1.7);
+}
+
+.pause-action-btn:active {
+  background: #04232a;
+}
+
+@media (max-width: 520px) {
+  #pauseButton {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .pause-card {
+    padding: 1.5rem;
+    min-width: 250px;
+  }
+
+  .pause-card h1 {
+    font-size: 18px;
+  }
+
+  .pause-action-btn {
+    font-size: 10px;
+    padding: 10px 16px;
+  }
 }

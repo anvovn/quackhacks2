@@ -41,6 +41,13 @@
   // Image cache to avoid reloading
   const imageCache = {};
 
+  // Player direction tracking (0 = up, 90 = right, 180 = down, 270 = left)
+  let playerDirection = 0; // starts facing up
+
+  // Pause state
+  let isPaused = false;
+  let ws = null; // websocket will be assigned in connect()
+
   // last known server state
   let lastGrid = null;
   let lastPlayer = null;
@@ -161,16 +168,30 @@
       const screenY = (player.y - cameraY) * TILE_SIZE;
       const playerSpritePath = getSpriteForTile('*');
       const pSprite = loadImage(playerSpritePath);
+      
+      // Save canvas state
+      ctx.save();
+      
+      // Translate to center of sprite, rotate, then translate back
+      const centerX = screenX + TILE_SIZE / 2;
+      const centerY = screenY + TILE_SIZE / 2;
+      ctx.translate(centerX, centerY);
+      ctx.rotate(playerDirection * Math.PI / 180);
+      ctx.translate(-TILE_SIZE / 2, -TILE_SIZE / 2);
+      
       if (pSprite && pSprite.complete) {
-        ctx.drawImage(pSprite, screenX, screenY, TILE_SIZE, TILE_SIZE);
+        ctx.drawImage(pSprite, 0, 0, TILE_SIZE, TILE_SIZE);
       } else {
         // fallback circle
         ctx.beginPath();
         ctx.fillStyle = '#ffd700';
-        ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, TILE_SIZE * 0.35, 0, Math.PI * 2);
+        ctx.arc(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE * 0.35, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
       }
+      
+      // Restore canvas state
+      ctx.restore();
     }
 
     // Draw dim overlay and vision cone using off-screen canvas
@@ -216,7 +237,7 @@
 
   // reconnecting websocket with simple backoff
   function connect() {
-    const ws = new WebSocket(WS_URL);
+    ws = new WebSocket(WS_URL);
     ws.addEventListener('open', () => console.log('WS open', WS_URL));
     ws.addEventListener('message', (evt) => {
       try {
@@ -240,10 +261,23 @@
       ws.close();
     });
 
-    // forward keyboard input
+    // forward keyboard input and update player direction
     window.addEventListener('keydown', (ev) => {
-      const keyMap = { ArrowUp: 'w', ArrowLeft: 'a', ArrowDown: 's', ArrowRight: 'd', w: 'w', a: 'a', s: 's', d: 'd' };
+      // Don't send movement commands if paused
+      if (isPaused) return;
+      
+      const keyMap = { 
+        ArrowUp: 'w', ArrowLeft: 'a', ArrowDown: 's', ArrowRight: 'd', 
+        w: 'w', a: 'a', s: 's', d: 'd' 
+      };
       const mv = keyMap[ev.key];
+      
+      // Update player direction based on key pressed
+      if (ev.key === 'w' || ev.key === 'ArrowUp') playerDirection = 0;      // up
+      else if (ev.key === 'd' || ev.key === 'ArrowRight') playerDirection = 90;  // right
+      else if (ev.key === 's' || ev.key === 'ArrowDown') playerDirection = 180;  // down
+      else if (ev.key === 'a' || ev.key === 'ArrowLeft') playerDirection = 270;  // left
+      
       if (mv && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ move: mv }));
     });
   }
@@ -252,6 +286,41 @@
   document.documentElement.style.overflow = 'hidden';
   document.body.style.margin = '0';
   document.body.style.overflow = 'hidden';
+
+  // Set up pause menu functionality
+  const pauseButton = document.getElementById('pauseButton');
+  const pauseMenu = document.getElementById('pauseMenu');
+  const resumeButton = document.getElementById('resumeButton');
+  const menuButton = document.getElementById('menuButton');
+
+  pauseButton.addEventListener('click', () => {
+    isPaused = true;
+    pauseMenu.classList.remove('hidden');
+  });
+
+  resumeButton.addEventListener('click', () => {
+    isPaused = false;
+    pauseMenu.classList.add('hidden');
+  });
+
+  menuButton.addEventListener('click', () => {
+    // Close websocket and redirect to menu
+    if (ws) ws.close();
+    window.location.href = 'index.html';
+  });
+
+  // Also allow ESC key to toggle pause
+  window.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') {
+      if (isPaused) {
+        isPaused = false;
+        pauseMenu.classList.add('hidden');
+      } else {
+        isPaused = true;
+        pauseMenu.classList.remove('hidden');
+      }
+    }
+  });
 
   connect();
 
