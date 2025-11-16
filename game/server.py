@@ -62,7 +62,7 @@ def initialize_game():
             raise FileNotFoundError(f"Level file not found: {level_path}")
 
         # Unpack returned values into GS
-        GS.w, GS.h, GS.vg, GS.ct, GS.grid, GS.player_pos = make_grid(level_path)
+        GS.w, GS.h, GS.value_grid, GS.ct, GS.grid, GS.player_pos = make_grid(level_path)
         print(f"✓ Level loaded: {GS.w}x{GS.h}, player at {GS.player_pos}")
     except Exception as e:
         print(f"✗ Failed to load level: {e}")
@@ -76,7 +76,7 @@ def initialize_game():
             GS.grid[0][i] = GS.grid[GS.h-1][i] = '#'
             GS.grid[i][0] = GS.grid[i][GS.w-1] = '#'
         GS.player_pos = [5, 5]
-        GS.vg = GS.grid  # simple fallback
+        GS.value_grid = GS.grid  # simple fallback
         GS.basic_tiles = {}
 
 # Initialize game on startup
