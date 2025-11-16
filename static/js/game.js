@@ -36,12 +36,12 @@
 
     
     // Create an off-screen canvas for drawing the dim overlay
-      const overlayCanvas = document.createElement('canvas');
-      overlayCanvas.width = canvas.width;
-      overlayCanvas.height = canvas.height;
-      const overlayCtx = overlayCanvas.getContext('2d');
-      overlayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      overlayCtx.imageSmoothingEnabled = false;
+    const overlayCanvas = document.createElement('canvas');
+    overlayCanvas.width = canvas.width;
+    overlayCanvas.height = canvas.height;
+    const overlayCtx = overlayCanvas.getContext('2d');
+    overlayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    overlayCtx.imageSmoothingEnabled = false;
 
   // Image cache to avoid reloading
   const imageCache = {};
