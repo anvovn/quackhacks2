@@ -4,14 +4,22 @@ import json
 from game import *
 from game_logic import *
 import time
+import asyncio
+import websockets
 
 # --- Initialize game ---
-w, h, vg, ct, grid, player_pos = make_grid("WIPLevels/floor0new.txt")
+w, h, vg, ct, grid, player_pos = make_grid("floor0.txt")
 
 def serialize_state():
+    try:
+        tiles = basic_tiles
+    except NameError:
+        tiles = {}
+
     return {
         "grid": grid,
-        "player": {"x": player_pos[0], "y": player_pos[1]}
+        "player": {"x": player_pos[0], "y": player_pos[1]},
+        "basic_tiles": tiles
     }
 
 async def handler(ws):
