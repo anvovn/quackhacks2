@@ -32,7 +32,7 @@
 
   //Set up audio for footsteps
   let footstepAudio = new Audio('/assets/audio/footsteps.wav'); 
-  let ambienceAudio = new Audio('/assets/audio/ambient.wav');
+  let ambienceAudio = new Audio('/assets/audio/MainGameAmbience.wav');
 
 
   //AUDIO END
