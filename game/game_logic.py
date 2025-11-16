@@ -252,18 +252,19 @@ def move_player(direction):
         GS.player_pos = (nx, ny)
         return GS.player_pos
 
-
-    # Stairs up/down
-    if tile_char == "=":
-        key_id = tile_val[1] if isinstance(tile_val, (list, tuple)) and len(tile_val) > 1 else None
-        if key_id in collectedKeys:
-            new_floor = getAdjacentFloorTile(nx, ny)
-            # convert door to floor and clear key ID
-            add_gridchange(GS.floor, nx, ny, 2 , new_floor)
-            print("Door unlocked.")
-        else:
-            print("Door blocked — need key:", key_id)
-            return GS.player_pos
+    if tile_char == "^":
+        print("Going up a floor!")
+        GS.message = "Going up a floor!"
+        new_level(GS.floor + 1)
+        return GS.player_pos
+    
+    if tile_char == "v":
+        print("Going down a floor!")
+        GS.message = "Going down a floor!"
+        # Don't go below floor 0
+        if GS.floor > 0:
+            new_level(GS.floor - 1)
+        return GS.player_pos
 
 
     # Chest interaction
