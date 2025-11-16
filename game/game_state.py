@@ -1,0 +1,9 @@
+w = 0
+h = 0
+floor = 0
+vg = None
+ct = None
+grid = None
+value_grid = None
+player_pos = (0, 0)
+basic_tiles = {}
