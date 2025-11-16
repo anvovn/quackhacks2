@@ -55,36 +55,34 @@ def floor_time_is_up():
 # ============================================================
 #  ADJACENT FLOOR TILE RESOLUTION (uses GS.value_grid)
 # ============================================================
+from collections import Counter
+
 def getAdjacentFloorTile(x, y):
     """
-    Return the most common adjacent floor type index (0..n).
-    If none found, return 0.
-    Interprets GS.value_grid entries robustly.
+    Return the cell[1] value that is most common among the four cardinal neighbors.
+    Only return it if the associated cell[0] is 2, otherwise return 0.
     """
     neighbors = [(1,0), (-1,0), (0,1), (0,-1)]
-    counts = {}
+    values = []
+
     for dx, dy in neighbors:
-        ax = x + dx
-        ay = y + dy
-        if 0 <= ay < GS.h and 0 <= ax < GS.w:
-            try:
-                cell = GS.value_grid[ay][ax]
-                if isinstance(cell, (list, tuple)) and len(cell) > 0:
-                    idx = int(cell[0])
-                elif isinstance(cell, dict):
-                    idx = int(cell.get("floor", 0))
-                elif isinstance(cell, int):
-                    idx = int(cell)
-                else:
-                    continue
-                counts[idx] = counts.get(idx, 0) + 1
-            except Exception:
-                continue
-    if not counts:
+        nx, ny = x + dx, y + dy
+        if 0 <= ny < GS.h and 0 <= nx < GS.w:
+            cell = GS.value_grid[ny][nx]
+            if isinstance(cell, (list, tuple)) and len(cell) > 1:
+                if int(cell[0]) == 2:
+                    values.append(cell[1])
+            elif isinstance(cell, dict):
+                if int(cell.get("floor", 0)) == 2:
+                    values.append(cell.get("subtile", 0))  # or whatever corresponds to cell[1]
+
+    if not values:
         return 0
-    # return floor type with max count; ties -> smallest index
-    best = max(sorted(counts.items(), key=lambda kv: kv[0]), key=lambda kv: kv[1])
-    return best[0]
+
+    most_common_value = Counter(values).most_common(1)[0][0]
+    GS.grid[y][x] = " "
+    return most_common_value
+
 
 # ============================================================
 #  GRID CHANGE PERSISTENCE
@@ -230,7 +228,7 @@ def move_player(direction):
         if key_id in collectedKeys:
             new_floor = getAdjacentFloorTile(nx, ny)
             # convert door to floor and clear key ID
-            add_gridchange(GS.floor, nx, ny, new_floor, 0)
+            add_gridchange(GS.floor, nx, ny, 2, new_floor)
             print("Door unlocked.")
             GS.message = "Door unlocked."
             # now move player onto the tile
@@ -250,7 +248,7 @@ def move_player(direction):
         GS.message = f"Picked up a key: {key_id}"
         new_floor = getAdjacentFloorTile(nx, ny)
         # convert tile to floor and clear key ID
-        add_gridchange(GS.floor, nx, ny, new_floor, 0)
+        add_gridchange(GS.floor, nx, ny, 2, new_floor)
         GS.player_pos = (nx, ny)
         return GS.player_pos
 
@@ -261,7 +259,7 @@ def move_player(direction):
         if key_id in collectedKeys:
             new_floor = getAdjacentFloorTile(nx, ny)
             # convert door to floor and clear key ID
-            add_gridchange(GS.floor, nx, ny, new_floor, 0)
+            add_gridchange(GS.floor, nx, ny, 2 , new_floor)
             print("Door unlocked.")
         else:
             print("Door blocked — need key:", key_id)
