@@ -6,7 +6,7 @@ from game_logic import *
 import time
 
 # --- Initialize game ---
-w, h, vg, ct, grid, player_pos = make_grid("level_0.txt")
+w, h, vg, ct, grid, player_pos = make_grid("WIPLevels/floor0new.txt")
 
 def serialize_state():
     return {
