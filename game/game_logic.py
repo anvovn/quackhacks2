@@ -145,15 +145,9 @@ def move_player(grid, value_grid, player_pos, direction):
     # MOVE PLAYER (grid & value_grid)
     # ------------------------------------------------
 
-    # 1. Clear the old position (restore to floor)
-    grid[y][x] = " "  
-    value_grid[y][x] = basic_tiles[" "][:]   # copy so we don't mutate base
-
-    # 2. Move into the new tile (keep the tile underneath, player is drawn on top by client)
-    # Don't overwrite grid with "*"; instead keep the floor tile
-    # The server will send the player position separately
-    grid[ny][nx] = " "  
-    value_grid[ny][nx] = basic_tiles[" "][:]  # copy to avoid shared ref issues
+    # Simply move the player position without modifying the grid.
+    # The client will draw the player sprite on top of whatever tile is at this position.
+    # Don't modify grid or value_grid — keep them intact so floor types are preserved.
 
     return (nx, ny)
 
