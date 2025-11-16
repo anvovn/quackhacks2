@@ -1,9 +1,9 @@
 
 basic_tiles = { #ints are only used for the special code
     "-":[0,-2],  #empty Space
-    "#":[1,-2],  #wall
-    " ":[2,-2],  #basic floor
-    "*":[3, -2], # player
+    "#":[1,-1],  #wall
+    " ":[2,-1],  #basic floor
+    "*":[3, -2], #player
     "=":[9,-1],  #door, disappears if they have the key for it
     "<":[8,-1],  #keycard for the door
     "?":[7,-1],  #special interactable, do a function call
