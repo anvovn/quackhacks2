@@ -32,6 +32,8 @@
 
   //Set up audio for footsteps
   let footstepAudio = new Audio('/assets/audio/footsteps.wav'); 
+  let ambienceAudio = new Audio('/assets/audio/ambient.wav');
+
 
   //AUDIO END
 
@@ -383,5 +385,6 @@
   });
 
   connect();
+  playAudio(ambienceAudio);
 
 })();
