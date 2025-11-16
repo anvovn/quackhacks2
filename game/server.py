@@ -31,6 +31,11 @@ def index():
 def game():
     return render_template('game.html')
 
+@app.route('/end')
+@app.route('/end.html')
+def end():
+    return render_template('end.html')
+
 @app.route('/tutorial')
 @app.route('/tutorial.html')
 def tutorial():
@@ -64,7 +69,7 @@ def initialize_game():
         # Unpack returned values into GS
         GS.w, GS.h, GS.value_grid, GS.ct, GS.grid, GS.player_pos = make_grid(level_path)
         GS.floor = 0
-        reset() # Resets collected keys and grid changes (doors)
+        # reset() # Resets collected keys and grid changes (doors)
 
         print(f"✓ Level loaded: {GS.w}x{GS.h}, player at {GS.player_pos}")
     except Exception as e:
@@ -93,7 +98,8 @@ def serialize_state():
         "grid": GS.grid,
         "player": {"x": GS.player_pos[0], "y": GS.player_pos[1]},
         "basic_tiles": GS.basic_tiles,
-        "message": msg
+        "message": msg,
+        "game_complete": GS.game_complete
     }
 
 # --- WebSocket Handler ---
