@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <script defer src="../static/js/menu.js"></script>
+  <script>
+    // Display elapsed time from game session
+    window.addEventListener('DOMContentLoaded', () => {
+      const elapsedSeconds = sessionStorage.getItem('elapsedTime');
+      if (elapsedSeconds) {
+        const mins = Math.floor(elapsedSeconds / 60);
+        const secs = elapsedSeconds % 60;
+        const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        document.getElementById('finalTime').textContent = timeStr;
+        sessionStorage.removeItem('elapsedTime'); // Clear after use
+      }
+    });
+  </script>
 </head>
 
 <body>

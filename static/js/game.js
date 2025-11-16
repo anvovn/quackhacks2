@@ -84,6 +84,31 @@
   let messageTimeout = null;
   const MESSAGE_DURATION = 3000; // 3 seconds
 
+  // Timer tracking
+  let gameStartTime = Date.now();
+  let pausedTime = 0; // Track total paused time
+  let elapsedSeconds = 0;
+
+  // Format seconds to MM:SS
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  // Update timer display
+  function updateTimer() {
+    const now = Date.now();
+    elapsedSeconds = Math.floor((now - gameStartTime - pausedTime) / 1000);
+    const timerDisplay = document.getElementById('timerDisplay');
+    if (timerDisplay) {
+      timerDisplay.textContent = formatTime(elapsedSeconds);
+    }
+  }
+
+  // Start the timer update loop
+  const timerInterval = setInterval(updateTimer, 100);
+
   // last known server state
   let lastGrid = null;
   let lastPlayer = null;
@@ -305,6 +330,9 @@
         // Check if game is complete
         if (state.game_complete) {
           console.log('Game complete! Redirecting to end screen...');
+          clearInterval(timerInterval);
+          // Store elapsed time in sessionStorage to pass to end screen
+          sessionStorage.setItem('elapsedTime', elapsedSeconds);
           window.location.href = 'end.html';
           return;
         }
@@ -371,6 +399,7 @@
     pauseButton.addEventListener('click', () => {
       isPaused = true;
       pauseMenu.classList.remove('hidden');
+      gameStartTime = Date.now(); // Start tracking pause time
     });
   }
 
@@ -378,6 +407,7 @@
     resumeButton.addEventListener('click', () => {
       isPaused = false;
       pauseMenu.classList.add('hidden');
+      pausedTime += Date.now() - gameStartTime; // Add pause duration to total paused time
     });
   }
 
@@ -385,6 +415,7 @@
     menuButton.addEventListener('click', () => {
       // Close websocket and redirect to menu
       if (ws) ws.close();
+      clearInterval(timerInterval);
       window.location.href = 'index.html';
     });
   }
@@ -395,21 +426,16 @@
       if (isPaused) {
         isPaused = false;
         if (pauseMenu) pauseMenu.classList.add('hidden');
+        pausedTime += Date.now() - gameStartTime; // Add pause duration
       } else {
         isPaused = true;
         if (pauseMenu) pauseMenu.classList.remove('hidden');
+        gameStartTime = Date.now(); // Start tracking pause time
       }
     }
   });
 
   connect();
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
 
 })();
