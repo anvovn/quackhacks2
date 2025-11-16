@@ -385,6 +385,6 @@
   });
 
   connect();
-  playAudio(ambienceAudio);
+  ambienceAudio.play();
 
 })();
