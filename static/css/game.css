@@ -124,3 +124,28 @@ canvas {
     padding: 10px 16px;
   }
 }
+
+/* Message container */
+.message-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(8, 48, 70, 0.9);
+  border: 3px solid #e6fff8;
+  border-radius: 6px;
+  padding: 12px 20px;
+  color: #e6fff8;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  text-align: center;
+  max-width: 90%;
+  z-index: 60;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+.message-container.show {
+  opacity: 1;
+}

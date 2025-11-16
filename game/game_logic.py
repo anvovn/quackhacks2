@@ -183,7 +183,7 @@ def new_level(new_floor, start_pos=None):
 #  MOVEMENT (uses GS globals) - call as move_player(direction)
 # ============================================================
 def move_player(direction):
-    print("PMV")
+    # print("PMV")
     """
     Use GS.grid, GS.value_grid, GS.player_pos, GS.h, GS.w.
     Returns GS.player_pos (possibly updated).
@@ -232,11 +232,13 @@ def move_player(direction):
             # convert door to floor and clear key ID
             add_gridchange(GS.floor, nx, ny, new_floor, 0)
             print("Door unlocked.")
+            GS.message = "Door unlocked."
             # now move player onto the tile
             GS.player_pos = (nx, ny)
             return GS.player_pos
         else:
             print("Door blocked — need key:", key_id)
+            GS.message = f"Door blocked — need key: {key_id}"
             return GS.player_pos
 
 
@@ -245,6 +247,7 @@ def move_player(direction):
         key_id = tile_val[1] if isinstance(tile_val, (list, tuple)) and len(tile_val) > 1 else None
         collectedKeys.add(key_id)
         print(f"Picked up a key: {key_id}")
+        GS.message = f"Picked up a key: {key_id}"
         new_floor = getAdjacentFloorTile(nx, ny)
         # convert tile to floor and clear key ID
         add_gridchange(GS.floor, nx, ny, new_floor, 0)
