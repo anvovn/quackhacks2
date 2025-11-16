@@ -8,3 +8,4 @@ value_grid = None
 player_pos = (0, 0)
 basic_tiles = {}
 message = None  # Current message to display to player
+game_complete = False  # Set to True when player finishes the game

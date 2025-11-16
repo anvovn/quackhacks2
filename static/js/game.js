@@ -23,6 +23,8 @@
   const HALF_VIEWPORT_COLS = Math.floor(VIEWPORT_WIDTH / (TILE_SIZE * 2));
   const HALF_VIEWPORT_ROWS = Math.floor(VIEWPORT_HEIGHT / (TILE_SIZE * 2));
 
+  let visionSize = 350;
+
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) {
     console.error('gameCanvas not found');
@@ -83,6 +85,31 @@
   // Message display
   let messageTimeout = null;
   const MESSAGE_DURATION = 3000; // 3 seconds
+
+  // Timer tracking
+  let gameStartTime = Date.now();
+  let pausedTime = 0; // Track total paused time
+  let elapsedSeconds = 0;
+
+  // Format seconds to MM:SS
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  // Update timer display
+  function updateTimer() {
+    const now = Date.now();
+    elapsedSeconds = Math.floor((now - gameStartTime - pausedTime) / 1000);
+    const timerDisplay = document.getElementById('timerDisplay');
+    if (timerDisplay) {
+      timerDisplay.textContent = formatTime(elapsedSeconds);
+    }
+  }
+
+  // Start the timer update loop
+  const timerInterval = setInterval(updateTimer, 100);
 
   // last known server state
   let lastGrid = null;
@@ -154,6 +181,19 @@
     return spriteMap[baseChar] || '/assets/art/concrete_floor.png';
   }
 
+  function shrinkVision(){
+
+    while(visionSize>=150){
+      visionSize -= 10;
+      sleep(100);
+    }
+    sleep(8000);
+    while(visionSize<=350){
+      visionSize += 10;
+      sleep(100);
+    }
+  }
+
   function draw(state) {
     const grid = state.grid;
     const player = state.player;
@@ -213,6 +253,13 @@
         }
       }
     }
+    // RANDOM VISION SHRINKING TRIGGER
+    let randomNumber = Math.floor(Math.random() * 800) + 1;
+
+  // Check if the number is the specific success value (e.g., 800)
+    if (randomNumber === 800) {
+      shrinkVision();
+    }
 
     // draw player sprite centered on screen
     if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
@@ -250,7 +297,7 @@
     if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
       const playerScreenX = (player.x - cameraX + 0.5) * TILE_SIZE;
       const playerScreenY = (player.y - cameraY + 0.5) * TILE_SIZE;
-      const visionRadius = 250; // how far the light reaches
+      const visionRadius = visionSize; // how far the light reaches
       const visionAngle = 360; // degrees (360° = full circle)
       const visionDirection = 0;
 
@@ -301,6 +348,15 @@
         // Show message if server sent one
         if (state.message) {
           showMessage(state.message);
+        }
+        // Check if game is complete
+        if (state.game_complete) {
+          console.log('Game complete! Redirecting to end screen...');
+          clearInterval(timerInterval);
+          // Store elapsed time in sessionStorage to pass to end screen
+          sessionStorage.setItem('elapsedTime', elapsedSeconds);
+          window.location.href = 'end.html';
+          return;
         }
         draw(state);
       } catch (err) {
@@ -365,6 +421,7 @@
     pauseButton.addEventListener('click', () => {
       isPaused = true;
       pauseMenu.classList.remove('hidden');
+      gameStartTime = Date.now(); // Start tracking pause time
     });
   }
 
@@ -372,6 +429,7 @@
     resumeButton.addEventListener('click', () => {
       isPaused = false;
       pauseMenu.classList.add('hidden');
+      pausedTime += Date.now() - gameStartTime; // Add pause duration to total paused time
     });
   }
 
@@ -379,6 +437,7 @@
     menuButton.addEventListener('click', () => {
       // Close websocket and redirect to menu
       if (ws) ws.close();
+      clearInterval(timerInterval);
       window.location.href = 'index.html';
     });
   }
@@ -389,21 +448,19 @@
       if (isPaused) {
         isPaused = false;
         if (pauseMenu) pauseMenu.classList.add('hidden');
+        pausedTime += Date.now() - gameStartTime; // Add pause duration
       } else {
         isPaused = true;
         if (pauseMenu) pauseMenu.classList.remove('hidden');
+        gameStartTime = Date.now(); // Start tracking pause time
       }
     }
   });
 
   connect();
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+<<<<<<< HEAD
 =======
 
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
+>>>>>>> a5bbba38b822fae1f17ff4771ade6dadc632e204
 
 })();
