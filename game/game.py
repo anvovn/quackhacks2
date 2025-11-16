@@ -14,6 +14,13 @@ basic_tiles = { #ints are only used for the special code
     "c":[21,-1],  #chest, refers to chest table
     "p":[22,-1]  #powerup
 }
+
+#  '#' 0 = concrete   1 = wood
+#  ' ' 0 = concrete   1 = wood    2 = carpet   3 = tile
+#  for staircases - -x-y x = level y = door  0001
+#  each staircase must have a corresponding start on the given level
+#        00 01 staircase, floor 00, there must be a start 01
+
 """
 Used to change the second tuple value:
 tile_type = tile[0]
