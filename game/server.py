@@ -69,7 +69,7 @@ def initialize_game():
         # Unpack returned values into GS
         GS.w, GS.h, GS.value_grid, GS.ct, GS.grid, GS.player_pos = make_grid(level_path)
         GS.floor = 0
-        # reset() # Resets collected keys and grid changes (doors)
+        reset() # Resets collected keys and grid changes (doors)
 
         print(f"✓ Level loaded: {GS.w}x{GS.h}, player at {GS.player_pos}")
     except Exception as e:
