@@ -254,7 +254,7 @@
       }
     }
     // RANDOM VISION SHRINKING TRIGGER
-    let randomNumber = Math.floor(Math.random() * 800) + 1;
+    let randomNumber = Math.floor(Math.random() * 1800) + 1;
 
   // Check if the number is the specific success value (e.g., 800)
     if (randomNumber === 800) {
@@ -458,9 +458,5 @@
   });
 
   connect();
-<<<<<<< HEAD
-=======
-
->>>>>>> a5bbba38b822fae1f17ff4771ade6dadc632e204
 
 })();
