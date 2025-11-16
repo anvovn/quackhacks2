@@ -8,7 +8,7 @@ import asyncio
 import websockets
 
 # --- Initialize game ---
-w, h, vg, ct, grid, player_pos = make_grid("floor0.txt")
+w, h, vg, ct, grid, player_pos = make_grid("floor0new.txt")
 
 def serialize_state():
     try:
