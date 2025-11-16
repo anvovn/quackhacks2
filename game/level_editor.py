@@ -116,7 +116,6 @@ def load_tile_image(char, num, size):
         # map char/num to file path (edit as needed to match your files)
         # floors/walls use different images depending on num variant
         path = None
-
         if char == "#":
             path = os.path.join(ASSETS_DIR, "wood_wall.png") if num == "1" else os.path.join(ASSETS_DIR, "concrete_wall.png")
         elif char == " ":
@@ -131,14 +130,19 @@ def load_tile_image(char, num, size):
         elif char == "*":
             path = os.path.join(ASSETS_DIR, "duck_player.png")
         elif char == "=":
-            path = os.path.join(ASSETS_DIR, "door_templates.png")
+            path = os.path.join(ASSETS_DIR, "door_template.png")
         elif char == "<":
-            path = os.path.join(ASSETS_DIR, "cardboard_box.png")
+            path = os.path.join(ASSETS_DIR, "Keycard.png")
         elif char == "c":
             path = os.path.join(ASSETS_DIR, "Chest.png")
         elif char == "p":
             path = os.path.join(ASSETS_DIR, "cardboard_box.png")
+        elif char == "^":
+            path = os.path.join(ASSETS_DIR, "StairsVerticle.png")
+        elif char == "v":
+            path = os.path.join(ASSETS_DIR, "StairsVerticle.png")
         elif char == "E":
+
             # try specific roomba variants first
             if num and num.isdigit():
                 candidate = os.path.join(ASSETS_DIR, f"roomba_{num}.png")
