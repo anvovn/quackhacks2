@@ -61,7 +61,6 @@
   // Disable image smoothing for crisp pixel art
   ctx.imageSmoothingEnabled = false;
   ctx.webkitImageSmoothingEnabled = false;
-
     
   // Create an off-screen canvas for drawing the dim overlay
   const overlayCanvas = document.createElement('canvas');
@@ -263,7 +262,7 @@
       overlayCtx.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
       // Draw on overlay canvas: fill with dim, then cut out the vision cone
-      overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      overlayCtx.fillStyle = 'rgba(0, 0, 0, 1)';
       overlayCtx.fillRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
       // Cut out the vision cone (use destination-out to erase)
@@ -282,7 +281,7 @@
       ctx.drawImage(overlayCanvas, 0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     } else {
       // If no player, just dim everything
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
       ctx.fillRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     }
   }
