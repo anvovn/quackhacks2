@@ -53,6 +53,12 @@ def display_countdown(t):
 def floor_time_is_up():
     print("Floor time is up!")
 
+def reset():
+    global collectedKeys, gridChanges, enemyStates
+    collectedKeys.clear()
+    gridChanges.clear()
+    enemyStates.clear()
+
 # ============================================================
 #  ADJACENT FLOOR TILE RESOLUTION (uses GS.value_grid)
 # ============================================================
@@ -267,7 +273,8 @@ def move_player(direction):
     if tile_char == "^":
         print("Going up a floor!")
         GS.message = "Going up a floor!"
-        new_level(GS.floor + 1,tile_val[1]%100)
+        GS.floor = tile_val[1]//100
+        new_level(GS.floor,tile_val[1]%100)
         return GS.player_pos
     
     if tile_char == "v":
@@ -275,7 +282,8 @@ def move_player(direction):
         GS.message = "Going down a floor!"
         # Don't go below floor 0
         if GS.floor > 0:
-            new_level(GS.floor - 1,tile_val[1]%100)
+            GS.floor = tile_val[1]//100
+            new_level(GS.floor,tile_val[1]%100)
         return GS.player_pos
 
 
