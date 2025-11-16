@@ -23,8 +23,7 @@
   const HALF_VIEWPORT_COLS = Math.floor(VIEWPORT_WIDTH / (TILE_SIZE * 2));
   const HALF_VIEWPORT_ROWS = Math.floor(VIEWPORT_HEIGHT / (TILE_SIZE * 2));
 
-  let visionSize = 350;
-  let visionCounter = 1800;
+
 
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) {
@@ -246,20 +245,7 @@
     let randomNumber = Math.floor(Math.random() * 1800) + 1;
 
   // Check if the number is the specific success value (e.g., 800)
-  if(visionCounter<=0){
-    while(visionSize>=150){
-      visionSize -= 5;
-      sleep(200);
-    }
-    sleep(8000);
-    while(visionSize<=350){
-      visionSize += 5;
-      sleep(200);
-    }
-  }
-  else{
-    visionCounter--;
-  }
+
 
     // draw player sprite centered on screen
     if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
@@ -297,7 +283,7 @@
     if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
       const playerScreenX = (player.x - cameraX + 0.5) * TILE_SIZE;
       const playerScreenY = (player.y - cameraY + 0.5) * TILE_SIZE;
-      const visionRadius = visionSize; // how far the light reaches
+      const visionRadius = 350; // how far the light reaches
       const visionAngle = 360; // degrees (360° = full circle)
       const visionDirection = 0;
 
