@@ -12,7 +12,6 @@ def main():
     while True:
         os.system("cls" if os.name == "nt" else "clear")
         print_grid(grid)
-        print(vg)
         key = getch().lower()
         if key == "q":
             break
