@@ -183,6 +183,7 @@ def new_level(new_floor, start_pos=None):
 #  MOVEMENT (uses GS globals) - call as move_player(direction)
 # ============================================================
 def move_player(direction):
+    print("PMV")
     """
     Use GS.grid, GS.value_grid, GS.player_pos, GS.h, GS.w.
     Returns GS.player_pos (possibly updated).
@@ -223,74 +224,46 @@ def move_player(direction):
         return GS.player_pos
 
     # DOOR: block unless key present
+    # DOOR: block unless key present
     if tile_char == "=":
-        # read key id defensively
-        try:
-            if isinstance(tile_val, (list, tuple)) and len(tile_val) > 1:
-                key_id = tile_val[1]
-            elif isinstance(tile_val, dict):
-                key_id = tile_val.get("key")
-            else:
-                key_id = tile_val
-        except Exception:
-            key_id = None
-
+        key_id = tile_val[1] if isinstance(tile_val, (list, tuple)) and len(tile_val) > 1 else None
         if key_id in collectedKeys:
-            new_floor_style = getAdjacentFloorTile(nx, ny)
-            add_gridchange(GS.floor, nx, ny, new_floor_style, -2)
+            new_floor = getAdjacentFloorTile(nx, ny)
+            # convert door to floor and clear key ID
+            add_gridchange(GS.floor, nx, ny, new_floor, 0)
             print("Door unlocked.")
-            # allow movement through the newly opened tile
+            # now move player onto the tile
+            GS.player_pos = (nx, ny)
+            return GS.player_pos
         else:
             print("Door blocked — need key:", key_id)
             return GS.player_pos
 
+
     # KEY pickup: walk onto it and pick it up
     if tile_char == "<":
-        try:
-            if isinstance(tile_val, (list, tuple)) and len(tile_val) > 1:
-                key_id = tile_val[1]
-            elif isinstance(tile_val, dict):
-                key_id = tile_val.get("id") or tile_val.get("key")
-            else:
-                key_id = tile_val
-        except Exception:
-            key_id = None
-
-        if key_id is not None:
-            collectedKeys.add(key_id)
-            print("Picked up a key:", key_id)
-        else:
-            print("Picked up a key (unknown id)")
-
-        new_floor_style = getAdjacentFloorTile(nx, ny)
-        add_gridchange(GS.floor, nx, ny, new_floor_style, -2)
-        # after pickup, allow movement onto the new floor tile
+        key_id = tile_val[1] if isinstance(tile_val, (list, tuple)) and len(tile_val) > 1 else None
+        collectedKeys.add(key_id)
+        print(f"Picked up a key: {key_id}")
+        new_floor = getAdjacentFloorTile(nx, ny)
+        # convert tile to floor and clear key ID
+        add_gridchange(GS.floor, nx, ny, new_floor, 0)
         GS.player_pos = (nx, ny)
         return GS.player_pos
 
-    # Stairs up/down
-    if tile_char in ("^", "v"):
-        target_floor = None
-        start_info = None
-        try:
-            if isinstance(tile_val, (list, tuple)) and len(tile_val) >= 2:
-                target_floor = int(tile_val[0]) * 10 + int(tile_val[1])
-                start_info = tile_val[2:] if len(tile_val) > 2 else None
-            elif isinstance(tile_val, dict):
-                f0 = int(tile_val.get("f0", 0))
-                f1 = int(tile_val.get("f1", 0))
-                target_floor = f0 * 10 + f1
-                start_info = tile_val.get("start")
-        except Exception:
-            target_floor = None
 
-        if target_floor is not None:
-            load_level(target_floor, start_info)
-            # return new player position set by load_level
-            return GS.player_pos
+    # Stairs up/down
+    if tile_char == "=":
+        key_id = tile_val[1] if isinstance(tile_val, (list, tuple)) and len(tile_val) > 1 else None
+        if key_id in collectedKeys:
+            new_floor = getAdjacentFloorTile(nx, ny)
+            # convert door to floor and clear key ID
+            add_gridchange(GS.floor, nx, ny, new_floor, 0)
+            print("Door unlocked.")
         else:
-            print("Stairs metadata invalid")
+            print("Door blocked — need key:", key_id)
             return GS.player_pos
+
 
     # Chest interaction
     if tile_char == "c":
