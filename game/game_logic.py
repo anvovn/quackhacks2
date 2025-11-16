@@ -18,6 +18,7 @@ PLAYER_HEALTH = 10
 PLAYER_ATTACK = 2
 
 collectedKeys = set()     # set of key ids collected
+#collectedKeys.add(1)
 gridChanges = []          # list of (floor, x, y, state0, state1)
 enemyStates = []          # placeholder for enemy instances/state
 
@@ -172,9 +173,20 @@ def load_level(new_floor, start_pos=None):
         except Exception:
             pass
 
+    for y in range(GS.h):
+        for x in range(GS.w):
+            cell = GS.value_grid[y][x]
+            if isinstance(cell, (list, tuple)) and len(cell) > 1:
+                if cell[0] == 13 and int(cell[1]) == start_pos:
+                    #print("----- START POS found -----")
+                    GS.player_pos = (x, y)  # x = column, y = row
+                    #print(GS.player_pos)
+                    return True
     return True
 
 def new_level(new_floor, start_pos=None):
+    #print(new_floor,start_pos)
+    #print(GS.player_pos)
     return load_level(new_floor, start_pos)
 
 # ============================================================
@@ -255,7 +267,7 @@ def move_player(direction):
     if tile_char == "^":
         print("Going up a floor!")
         GS.message = "Going up a floor!"
-        new_level(GS.floor + 1)
+        new_level(GS.floor + 1,tile_val[1]%100)
         return GS.player_pos
     
     if tile_char == "v":
@@ -263,7 +275,7 @@ def move_player(direction):
         GS.message = "Going down a floor!"
         # Don't go below floor 0
         if GS.floor > 0:
-            new_level(GS.floor - 1)
+            new_level(GS.floor - 1,tile_val[1]%100)
         return GS.player_pos
 
 
