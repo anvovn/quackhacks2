@@ -1,168 +1,324 @@
+# game_logic.py
+import sys
 import time
 import math
-import sys
 import termios
 import tty
-from game import *
+import game_state as GS
+from game import make_grid
 
-# Basic information 
+# ============================================================
+#  MODULE-LOCAL RUNTIME STATE
+# ============================================================
 NIGHT_DURATION = 10
 NIGHT = 1
 FLOOR_TIMER = 90
 
-# Player won't have class (unless player complexity gets high enough to benefit from class usage)
 PLAYER_HEALTH = 10
-PLAYER_MOVEMENT = 1
 PLAYER_ATTACK = 2
 
-# Every enemy will inherit from this (including bosses because I'm lazy)
-class BaseEnemy:
-    def __init__(self, health=None, attack=None, movement=None):
-        self.health = 0
-        self.attack = 0
-        self.movement = 0
+collectedKeys = set()     # set of key ids collected
+gridChanges = []          # list of (floor, x, y, state0, state1)
+enemyStates = []          # placeholder for enemy instances/state
 
-    def attack(target):
-        PLAYER_HEALTH = PLAYER_HEALTH - self.attack
+# ============================================================
+#  BASIC ENEMY CLASS (kept simple)
+# ============================================================
+class Roomba:
+    def __init__(self, hp=3, attack=1, movement=1):
+        self.hp = hp
+        self.attack = attack
+        self.movement = movement
 
-    def receive_damage(damage):
-        self.health = self.health - damage
+    def do_attack(self):
+        global PLAYER_HEALTH
+        PLAYER_HEALTH -= self.attack
 
-    def isAlive():
-        return self.health <= 0
+    def receive_damage(self, dmg):
+        self.hp -= dmg
 
-# Basic enemies
-class Ghost(BaseEnemy):
-    def __init__(self, hp, attack, movement):
-        super().__init__(5, 1, 1)
+    def is_alive(self):
+        return self.hp > 0
 
-class Zombie(BaseEnemy):
-    def __init__(self, hp, attack, movement):
-        super().__init__(10, 2, 1)
-
-#Night methods
-def update_night(night):
-    print(f'Night {NIGHT} has been completed!')
-    NIGHT = night + 1
-    time.sleep(5)
-    if NIGHT != 6:
-        print(f'Night {NIGHT} has begun')
-        game_time_loop()
-    elif NIGHT == 6:
-        print(f'You survived Five Nights at the EMU!')
-    
-def restart_night(night):
-    print(f'You died')
-    time.sleep(5)
-    game_time_loop()
-
-def display_countdown(current_time):
-    print(f'Time: {NIGHT_DURATION - current_time} s')
-
-# Gameplay functions 
-def floor_time_is_up():
-    for i in range(10):
-        Ghost()
-
-def valid_attack(target):
-    return
-
-# The time loop so far
-def game_time_loop():
-    print(f'Night {NIGHT} has begun')
-    start_time = time.time()
-    while True:
-        time_passed = time.time() - start_time
-        remaining_time = math.floor(NIGHT_DURATION - time_passed)
-        remaining_ft = math.floor(FLOOR_TIMER - time_passed)
-        print(f'Time left: {remaining_time}')
-        if remaining_time <= 0:
-            update_night(NIGHT)
-            break
-        elif remaining_ft <= 0:
-            floor_time_is_up()
-        time.sleep(1)
-
-# Movement
-basic_solid = {"#", "E"}   # walls, enemies, etc—cannot walk through
+# ============================================================
+#  HELPERS / CONFIG
+# ============================================================
+basic_solid = {"#", "E"}   # cannot walk through
 pass_through = {"-", " ", "<", "?", "c", "p", "^", "v", "="}
 
-def move_player(grid, value_grid, player_pos, direction):
-    x, y = player_pos
+def display_countdown(t):
+    print(f"Time: {max(0, NIGHT_DURATION - t)} s")
 
-    # movement offsets
-    offsets = {
-        "w": (0, -1),
-        "s": (0, 1),
-        "a": (-1, 0),
-        "d": (1, 0)
-    }
+def floor_time_is_up():
+    print("Floor time is up!")
 
+# ============================================================
+#  ADJACENT FLOOR TILE RESOLUTION (uses GS.value_grid)
+# ============================================================
+def getAdjacentFloorTile(x, y):
+    """
+    Return the most common adjacent floor type index (0..n).
+    If none found, return 0.
+    Interprets GS.value_grid entries robustly.
+    """
+    neighbors = [(1,0), (-1,0), (0,1), (0,-1)]
+    counts = {}
+    for dx, dy in neighbors:
+        ax = x + dx
+        ay = y + dy
+        if 0 <= ay < GS.h and 0 <= ax < GS.w:
+            try:
+                cell = GS.value_grid[ay][ax]
+                if isinstance(cell, (list, tuple)) and len(cell) > 0:
+                    idx = int(cell[0])
+                elif isinstance(cell, dict):
+                    idx = int(cell.get("floor", 0))
+                elif isinstance(cell, int):
+                    idx = int(cell)
+                else:
+                    continue
+                counts[idx] = counts.get(idx, 0) + 1
+            except Exception:
+                continue
+    if not counts:
+        return 0
+    # return floor type with max count; ties -> smallest index
+    best = max(sorted(counts.items(), key=lambda kv: kv[0]), key=lambda kv: kv[1])
+    return best[0]
+
+# ============================================================
+#  GRID CHANGE PERSISTENCE
+# ============================================================
+def add_gridchange(floor, x, y, state0, state1):
+    """
+    Record a change and apply it immediately if it matches current floor.
+    Also update GS.grid so clients see the visual change.
+    """
+    gridChanges.append((floor, x, y, state0, state1))
+
+    if getattr(GS, "floor", None) == floor:
+        try:
+            # apply to value_grid if structure supports indexing
+            if state0 is not None and isinstance(GS.value_grid[y][x], (list, tuple)):
+                GS.value_grid[y][x][0] = state0
+            else:
+                # try to set completely if not list-like
+                GS.value_grid[y][x] = [state0, state1]
+
+            if state1 is not None:
+                if isinstance(GS.value_grid[y][x], list):
+                    GS.value_grid[y][x][1] = state1
+
+            # update visual char in GS.grid using chestTable (GS.ct) or fallback:
+            try:
+                GS.grid[y][x] = GS.ct[state0]
+            except Exception:
+                # fallback: if GS.ct missing or state0 invalid, use floor char ' '
+                GS.grid[y][x] = " "
+        except Exception:
+            # fail silently to avoid crashing runtime; log optionally
+            print("[add_gridchange] failed to apply immediate change at", (x, y))
+
+# ============================================================
+#  LEVEL LOADING
+# ============================================================
+def load_level(new_floor, start_pos=None):
+    """
+    Load a level into GS.* and apply saved gridChanges for that floor.
+    new_floor may be int or string convertible to int.
+    """
+    try:
+        nf = int(new_floor)
+    except Exception:
+        print("[load_level] invalid floor:", new_floor)
+        return False
+
+    fname = f"level_{nf}.txt"
+    try:
+        w, h, vg, ct, grid, player_pos = make_grid(fname)
+    except Exception as e:
+        print(f"[load_level] make_grid failed for {fname}: {e}")
+        return False
+
+    GS.w = w
+    GS.h = h
+    GS.value_grid = vg
+    GS.ct = ct
+    GS.grid = grid
+    if start_pos:
+        try:
+            GS.player_pos = tuple(start_pos)
+        except Exception:
+            GS.player_pos = player_pos
+    else:
+        GS.player_pos = player_pos
+    GS.floor = nf
+
+    # apply recorded changes for this floor
+    for rec in gridChanges:
+        if rec[0] != nf:
+            continue
+        _, gx, gy, s0, s1 = rec
+        try:
+            if 0 <= gy < GS.h and 0 <= gx < GS.w:
+                # ensure underlying structure is list-like
+                if isinstance(GS.value_grid[gy][gx], (list, tuple)):
+                    GS.value_grid[gy][gx][0] = s0
+                    GS.value_grid[gy][gx][1] = s1
+                else:
+                    GS.value_grid[gy][gx] = [s0, s1]
+                try:
+                    GS.grid[gy][gx] = GS.ct[s0]
+                except Exception:
+                    GS.grid[gy][gx] = " "
+        except Exception:
+            pass
+
+    return True
+
+def new_level(new_floor, start_pos=None):
+    return load_level(new_floor, start_pos)
+
+# ============================================================
+#  MOVEMENT (uses GS globals) - call as move_player(direction)
+# ============================================================
+def move_player(direction):
+    """
+    Use GS.grid, GS.value_grid, GS.player_pos, GS.h, GS.w.
+    Returns GS.player_pos (possibly updated).
+    """
+    global collectedKeys
+
+    if not hasattr(GS, "grid") or not hasattr(GS, "value_grid"):
+        print("[move_player] GS.grid or GS.value_grid not initialized")
+        return getattr(GS, "player_pos", (0,0))
+
+    x, y = GS.player_pos
+    grid = GS.grid
+    vg = GS.value_grid
+
+    offsets = {"w": (0,-1), "s": (0,1), "a": (-1,0), "d": (1,0)}
     if direction not in offsets:
-        return player_pos  # no movement
+        return GS.player_pos
 
     dx, dy = offsets[direction]
     nx, ny = x + dx, y + dy
 
-    # bounds check
-    if ny < 0 or ny >= len(grid): 
-        return player_pos
-    if nx < 0 or nx >= len(grid[0]):
-        return player_pos
+    # bounds
+    if ny < 0 or ny >= GS.h:
+        return GS.player_pos
+    if nx < 0 or nx >= GS.w:
+        return GS.player_pos
 
-    tile_char = grid[ny][nx][0]
-    tile_value = value_grid[ny][nx]
+    # tile char and value
+    tile_cell = grid[ny][nx]
+    tile_char = tile_cell[0] if isinstance(tile_cell, str) and tile_cell else tile_cell
+    try:
+        tile_val = vg[ny][nx]
+    except Exception:
+        tile_val = None
 
-    # ------------------------------------------------
-    # COLLISION / INTERACTION LOGIC
-    # ------------------------------------------------
-
-    # solid collision
+    # solid collision: walls and enemies
     if tile_char in basic_solid:
-        return player_pos
+        return GS.player_pos
 
-    # door collision (needs key)
+    # DOOR: block unless key present
     if tile_char == "=":
-        print("Door blocked — you need a key!")
-        return player_pos
+        # read key id defensively
+        try:
+            if isinstance(tile_val, (list, tuple)) and len(tile_val) > 1:
+                key_id = tile_val[1]
+            elif isinstance(tile_val, dict):
+                key_id = tile_val.get("key")
+            else:
+                key_id = tile_val
+        except Exception:
+            key_id = None
 
-    # Key pickup
+        if key_id in collectedKeys:
+            new_floor_style = getAdjacentFloorTile(nx, ny)
+            add_gridchange(GS.floor, nx, ny, new_floor_style, -2)
+            print("Door unlocked.")
+            # allow movement through the newly opened tile
+        else:
+            print("Door blocked — need key:", key_id)
+            return GS.player_pos
+
+    # KEY pickup: walk onto it and pick it up
     if tile_char == "<":
-        print("Picked up a key!")
-        # we could add key inventory logic later
+        try:
+            if isinstance(tile_val, (list, tuple)) and len(tile_val) > 1:
+                key_id = tile_val[1]
+            elif isinstance(tile_val, dict):
+                key_id = tile_val.get("id") or tile_val.get("key")
+            else:
+                key_id = tile_val
+        except Exception:
+            key_id = None
 
-    # Stairs
-    if tile_char == "^":
-        print("Stairs going UP")
-    if tile_char == "v":
-        print("Stairs going DOWN")
+        if key_id is not None:
+            collectedKeys.add(key_id)
+            print("Picked up a key:", key_id)
+        else:
+            print("Picked up a key (unknown id)")
 
-    # Chest
+        new_floor_style = getAdjacentFloorTile(nx, ny)
+        add_gridchange(GS.floor, nx, ny, new_floor_style, -2)
+        # after pickup, allow movement onto the new floor tile
+        GS.player_pos = (nx, ny)
+        return GS.player_pos
+
+    # Stairs up/down
+    if tile_char in ("^", "v"):
+        target_floor = None
+        start_info = None
+        try:
+            if isinstance(tile_val, (list, tuple)) and len(tile_val) >= 2:
+                target_floor = int(tile_val[0]) * 10 + int(tile_val[1])
+                start_info = tile_val[2:] if len(tile_val) > 2 else None
+            elif isinstance(tile_val, dict):
+                f0 = int(tile_val.get("f0", 0))
+                f1 = int(tile_val.get("f1", 0))
+                target_floor = f0 * 10 + f1
+                start_info = tile_val.get("start")
+        except Exception:
+            target_floor = None
+
+        if target_floor is not None:
+            load_level(target_floor, start_info)
+            # return new player position set by load_level
+            return GS.player_pos
+        else:
+            print("Stairs metadata invalid")
+            return GS.player_pos
+
+    # Chest interaction
     if tile_char == "c":
         print("Opened chest!")
+        # optional: change vg/grid, spawn loot etc.
 
-    # ------------------------------------------------
-    # MOVE PLAYER (grid & value_grid)
-    # ------------------------------------------------
+    # default — move player to the new tile
+    GS.player_pos = (nx, ny)
+    return GS.player_pos
 
-    # Simply move the player position without modifying the grid.
-    # The client will draw the player sprite on top of whatever tile is at this position.
-    # Don't modify grid or value_grid — keep them intact so floor types are preserved.
-
-    return (nx, ny)
-
+# ============================================================
+#  Terminal getch helper
+# ============================================================
 def getch():
     fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
+    old = termios.tcgetattr(fd)
     try:
         tty.setraw(fd)
         ch = sys.stdin.read(1)
     finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
     return ch
 
+# ============================================================
+#  Module test harness
+# ============================================================
 def main():
-    game_time_loop()
+    print("game_logic loaded.")
 
 if __name__ == "__main__":
     main()
