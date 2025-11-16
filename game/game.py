@@ -34,7 +34,6 @@ def decode_tiles(line):
     return re.findall(pattern, line.strip())
 
 def make_grid(levelFile):
-    print("Start")
     grid = []
     valueGrid = []
     chestTable = []
@@ -79,6 +78,11 @@ def make_grid(levelFile):
                 tile_values[1] = int(tile[1:])
             tmpgrid.append(tile_values)
         valueGrid.append(tmpgrid)
+
+    for y in range(height):
+        for x in range(width):
+            print(grid[y][x][0], end = '')
+        print()
 
     # --- Find player position ---
     player_pos = None
