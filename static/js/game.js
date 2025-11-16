@@ -4,8 +4,8 @@
   const ASSET_BASE = '/static/..';  // relative path to assets from static/
 
   // Camera / viewport settings
-  const VIEWPORT_WIDTH = 1920;   // canvas display size
-  const VIEWPORT_HEIGHT = 1000;
+  const VIEWPORT_WIDTH = window.innerWidth;   // canvas display size
+  const VIEWPORT_HEIGHT = window.innerHeight;
   const TILE_SIZE = 64;         // fixed zoomed-in tile size (larger = more zoomed)
   const HALF_VIEWPORT_COLS = Math.floor(VIEWPORT_WIDTH / (TILE_SIZE * 2));
   const HALF_VIEWPORT_ROWS = Math.floor(VIEWPORT_HEIGHT / (TILE_SIZE * 2));
@@ -31,12 +31,12 @@
 
     
     // Create an off-screen canvas for drawing the dim overlay
-    //   const overlayCanvas = document.createElement('canvas');
-    //   overlayCanvas.width = canvas.width;
-    //   overlayCanvas.height = canvas.height;
-    //   const overlayCtx = overlayCanvas.getContext('2d');
-    //   overlayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    //   overlayCtx.imageSmoothingEnabled = false;
+      const overlayCanvas = document.createElement('canvas');
+      overlayCanvas.width = canvas.width;
+      overlayCanvas.height = canvas.height;
+      const overlayCtx = overlayCanvas.getContext('2d');
+      overlayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      overlayCtx.imageSmoothingEnabled = false;
 
   // Image cache to avoid reloading
   const imageCache = {};
@@ -175,11 +175,13 @@
 
     // Draw dim overlay and vision cone using off-screen canvas
     if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
-      const playerScreenX = (player.x - cameraX) * TILE_SIZE + TILE_SIZE / 2;
-      const playerScreenY = (player.y - cameraY) * TILE_SIZE + TILE_SIZE / 2;
-      const visionRadius = 400; // how far the light reaches
-      const visionAngle = 180; // degrees (180° = semicircle)
-      const visionDirection = -90; // -90 = up, 0 = right, 90 = down, 180 = left
+      const playerScreenX = (player.x - cameraX + 0.5) * TILE_SIZE;
+      const playerScreenY = (player.y - cameraY + 0.5) * TILE_SIZE;
+      // const playerScreenX = ((player.x - cameraX) * TILE_SIZE + TILE_SIZE / 2) -450;
+      // const playerScreenY = ((player.y - cameraY) * TILE_SIZE + TILE_SIZE) -100;
+      const visionRadius = 250; // how far the light reaches
+      const visionAngle = 360; // degrees (180° = semicircle)
+      const visionDirection = 0; // -90 = up, 0 = right, 90 = down, 180 = left
 
       // Convert to radians and calculate start/end angles for 180° cone facing up
       const startAngle = (visionDirection - visionAngle / 2) * (Math.PI / 180);
@@ -201,8 +203,10 @@
       // Reset composite operation
       overlayCtx.globalCompositeOperation = 'source-over';
 
-      // Draw the overlay canvas onto the main canvas
-      ctx.drawImage(overlayCanvas, 0, 0);
+  // Draw the overlay canvas onto the main canvas.
+  // Specify destination width/height in CSS pixels so the main ctx transform
+  // (which scales by devicePixelRatio) doesn't double-scale the overlay.
+  ctx.drawImage(overlayCanvas, 0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     } else {
       // If no player, just dim everything
       ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
