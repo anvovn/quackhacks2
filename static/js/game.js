@@ -30,10 +30,23 @@
   }
   const ctx = canvas.getContext('2d');
 
-  //Set up audio for footsteps
+  //Set up audio for footsteps and ambiance
   let footstepAudio = new Audio('/assets/audio/footsteps.wav'); 
-  let ambienceAudio = new Audio('/assets/audio/MainGameAmbience.wav');
-
+  let ambianceAudio = new Audio('/assets/audio/MainGameAmbience.wav');
+  
+  // Set ambiance to loop and play
+  ambianceAudio.loop = true;
+  
+  // Auto-play ambiance (may require user interaction in some browsers)
+  ambianceAudio.play().catch(err => {
+    console.log('Ambiance autoplay blocked, will play on first user interaction:', err);
+    // Try to play on first keypress
+    const playOnInteraction = () => {
+      ambianceAudio.play();
+      window.removeEventListener('keydown', playOnInteraction);
+    };
+    window.addEventListener('keydown', playOnInteraction);
+  });
 
   //AUDIO END
 
@@ -385,6 +398,5 @@
   });
 
   connect();
-  ambienceAudio.play();
 
 })();
