@@ -1,72 +1,58 @@
-// --- Setup ---
+// --- Connect to WebSocket server ---
+const socket = new WebSocket("ws://localhost:8765");
+
+// --- Canvas setup ---
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Example game state
-let player = {
-  x: 100,
-  y: 100,
-  size: 40,
-  speed: 3
+// How big each tile should be on screen
+const TILE_SIZE = 30;
+
+let gameState = null;
+
+// --- Receive game state from Python ---
+socket.onmessage = (event) => {
+    gameState = JSON.parse(event.data);
+    drawGame();
 };
 
-// rotation in radians; 0 = no rotation
-player.rotation = 0;
-player.rotationSpeed = 0.06; // radians per frame when arrow pressed
+// --- Send user input to Python ---
+window.addEventListener("keydown", (ev) => {
+    const key = ev.key.toLowerCase();
 
-let keys = {}; // store pressed keys (normalized to lowercase)
-
-// --- Input Handling ---
-window.addEventListener("keydown", (e) => {
-  // normalize to lowercase so we handle 'w' and 'W' the same
-  keys[e.key.toLowerCase()] = true;
-});
-window.addEventListener("keyup", (e) => {
-  keys[e.key.toLowerCase()] = false;
+    if (["w", "a", "s", "d"].includes(key)) {
+        socket.send(JSON.stringify({ move: key }));
+    }
 });
 
-// --- Update Game Logic ---
-function update() {
-  // WASD controls (use lowercase keys because we normalize input)
-  if (keys['w']) player.y -= player.speed;
-  if (keys['s']) player.y += player.speed;
-  if (keys['a']) player.x -= player.speed;
-  if (keys['d']) player.x += player.speed;
-  // Arrow keys rotate the player model (use normalized keys: 'arrowleft' / 'arrowright')
-  if (keys['arrowleft']) {
-    player.rotation -= player.rotationSpeed;
-  }
-  if (keys['arrowright']) {
-    player.rotation += player.rotationSpeed;
-  }
+// --- Draw the game on canvas ---
+function drawGame() {
+    if (!gameState) return;
 
-  // Keep rotation in a reasonable range (optional normalization)
-  if (player.rotation > Math.PI * 2) player.rotation -= Math.PI * 2;
-  if (player.rotation < -Math.PI * 2) player.rotation += Math.PI * 2;
-}
+    const grid = gameState.grid;
+    const player = gameState.player;
 
-// --- Draw Everything ---
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw rotated player square centered on (player.x, player.y)
-  const cx = player.x + player.size / 2;
-  const cy = player.y + player.size / 2;
+    // Draw grid
+    for (let y = 0; y < grid.length; y++) {
+        for (let x = 0; x < grid[y].length; x++) {
+            const cell = grid[y][x];
 
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(player.rotation);
-  ctx.fillStyle = "cyan";
-  // draw centered at origin because we've translated to center
-  ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
-  ctx.restore();
-}
+            if (cell === 0) ctx.fillStyle = "#111";       // empty
+            else if (cell === 1) ctx.fillStyle = "#888";  // wall
+            else ctx.fillStyle = "#444";
 
-// --- Game Loop ---
-function gameLoop() {
-  update();
-  draw();
-  requestAnimationFrame(gameLoop);
-}
+            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+    }
 
-gameLoop();
+    // Draw player
+    ctx.fillStyle = "yellow";
+    ctx.fillRect(
+        player.x * TILE_SIZE,
+        player.y * TILE_SIZE,
+        TILE_SIZE,
+        TILE_SIZE
+    );
+}a

@@ -41,9 +41,10 @@ html, body {
 }
 
 .credits-section{ margin-bottom: 1.1rem; }
-.credits-section h2{ margin: 0 0 0.6rem 0; font-size: 12px; }
+.credits-section h2{ margin: 0 0 0.6rem 0; font-size: 14px; }
+.credits-section p{ margin: 0 0 0.6rem 0; font-size: 10px; }
 .credits-section ul{ margin: 0 0 0.6rem 1.1rem; padding: 0; }
-.credits-section li{ margin-bottom: 0.4rem; font-size: 11px; }
+.credits-section li{ margin-bottom: 0.4rem; font-size: 10px; }
 
 .credits-actions{ text-align: center; margin-top: 1.2rem; }
 .back-button{

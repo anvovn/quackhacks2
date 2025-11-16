@@ -84,10 +84,6 @@ def game_time_loop():
         time.sleep(1)
 
 # Movement
-
-basic_solid = {"#", "E"}   # walls, enemies, etc—cannot walk through
-pass_through = {"-", " ", "<", "?", "c", "p", "^", "v", "="}
-
 basic_solid = {"#", "E"}   # walls, enemies, etc—cannot walk through
 pass_through = {"-", " ", "<", "?", "c", "p", "^", "v", "="}
 
