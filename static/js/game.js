@@ -48,10 +48,30 @@
   let isPaused = false;
   let ws = null; // websocket will be assigned in connect()
 
+  // Message display
+  let messageTimeout = null;
+  const MESSAGE_DURATION = 3000; // 3 seconds
+
   // last known server state
   let lastGrid = null;
   let lastPlayer = null;
   let serverTiles = null;
+
+  // Display a message to the player
+  function showMessage(text) {
+    if (!text) return;
+    const container = document.getElementById('messageContainer');
+    container.textContent = text;
+    container.classList.add('show');
+
+    // Clear previous timeout if any
+    if (messageTimeout) clearTimeout(messageTimeout);
+
+    // Auto-hide after duration
+    messageTimeout = setTimeout(() => {
+      container.classList.remove('show');
+    }, MESSAGE_DURATION);
+  }
 
   // Load an image and cache it
   function loadImage(src) {
@@ -246,6 +266,10 @@
         if (state.basic_tiles) {
           serverTiles = state.basic_tiles;
           console.debug('Received basic_tiles from server', serverTiles);
+        }
+        // Show message if server sent one
+        if (state.message) {
+          showMessage(state.message);
         }
         draw(state);
       } catch (err) {

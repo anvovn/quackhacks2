@@ -84,10 +84,13 @@ initialize_game()
 
 # --- Serialize GS for WebSocket ---
 def serialize_state():
+    msg = GS.message
+    GS.message = None  # Clear message after sending
     return {
         "grid": GS.grid,
         "player": {"x": GS.player_pos[0], "y": GS.player_pos[1]},
-        "basic_tiles": GS.basic_tiles
+        "basic_tiles": GS.basic_tiles,
+        "message": msg
     }
 
 # --- WebSocket Handler ---
