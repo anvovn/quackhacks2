@@ -4,12 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Web Game</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="../static/css/game.css">
   <script defer src="../static/js/game.js"></script>
 </head>
 
 <body>
   <canvas id="gameCanvas" width="800" height="600"></canvas>
+  
+  <!-- Pause button in top-left corner -->
+  <button id="pauseButton" aria-label="Pause menu">
+    <i class="fas fa-pause"></i>
+  </button>
+
+  <!-- Pause menu overlay -->
+  <div id="pauseMenu" class="pause-menu hidden">
+    <div class="pause-card">
+      <h1>Paused</h1>
+      <div class="pause-actions">
+        <button id="resumeButton" class="pause-action-btn">Resume</button>
+        <button id="menuButton" class="pause-action-btn">Main Menu</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
