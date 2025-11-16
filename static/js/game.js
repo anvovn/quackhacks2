@@ -1,7 +1,20 @@
 // Client renderer: connects to game server websocket and renders grid using server's basic_tiles
 (function () {
-  const WS_URL = "ws://localhost:8765";
-  const ASSET_BASE = '/static/..';  // relative path to assets from static/
+  // Dynamic WebSocket URL - works for local, deployed, and Codespaces
+  let WS_URL;
+  
+  // Check if we're in GitHub Codespaces (URL contains .github.dev or .app.github.dev)
+  if (window.location.hostname.includes('github.dev') || window.location.hostname.includes('app.github.dev')) {
+    // In Codespaces, use wss:// with the same hostname, different port
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    WS_URL = `${wsProtocol}//${window.location.hostname.replace('-5000.', '-8765.')}`;
+    console.log('Detected Codespaces environment');
+  } else {
+    // Local or standard deployment
+    WS_URL = `ws://${window.location.hostname}:8765`;
+  }
+  
+  console.log('Connecting to WebSocket:', WS_URL);
 
   // Camera / viewport settings
   const VIEWPORT_WIDTH = window.innerWidth;   // canvas display size
@@ -18,7 +31,7 @@
   const ctx = canvas.getContext('2d');
 
   //Set up audio for footsteps
-    let footstepAudio = new Audio('../assets/audio/footsteps.wav'); 
+  let footstepAudio = new Audio('/assets/audio/footsteps.wav'); 
 
   //AUDIO END
 
@@ -35,13 +48,13 @@
   ctx.webkitImageSmoothingEnabled = false;
 
     
-    // Create an off-screen canvas for drawing the dim overlay
-    const overlayCanvas = document.createElement('canvas');
-    overlayCanvas.width = canvas.width;
-    overlayCanvas.height = canvas.height;
-    const overlayCtx = overlayCanvas.getContext('2d');
-    overlayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    overlayCtx.imageSmoothingEnabled = false;
+  // Create an off-screen canvas for drawing the dim overlay
+  const overlayCanvas = document.createElement('canvas');
+  overlayCanvas.width = canvas.width;
+  overlayCanvas.height = canvas.height;
+  const overlayCtx = overlayCanvas.getContext('2d');
+  overlayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  overlayCtx.imageSmoothingEnabled = false;
 
   // Image cache to avoid reloading
   const imageCache = {};
@@ -93,38 +106,38 @@
     const suffix = tileStr.slice(1); // e.g., "1", "2"
 
     const spriteMap = {
-      '-': '../assets/art/concrete_floor.png',        // empty
-      '#': '../assets/art/concrete_wall.png',          // wall (default)
-      ' ': '../assets/art/tile_floor.png',             // basic floor (default)
-      '*': '../assets/art/duck_player.png',            // player
-      '=': '../assets/art/door_template.png',          // door
-      '<': '../assets/art/Keycard.png',                // keycard
-      '?': '../assets/art/cardboard_box.png',          // interactable
-      'E': '../assets/art/attack_roomba.png',          // enemy
-      '^': '../assets/art/StairsVertical.png',         // staircase up
-      'v': '../assets/art/StairsVertical.png',         // staircase down
-      '@': '../assets/art/concrete_floor.png',         // start
-      'c': '../assets/art/Chest.png',                  // chest
-      'p': '../assets/art/cardboard_box.png'           // powerup
+      '-': '/assets/art/concrete_floor.png',        // empty
+      '#': '/assets/art/concrete_wall.png',          // wall (default)
+      ' ': '/assets/art/tile_floor.png',             // basic floor (default)
+      '*': '/assets/art/duck_player.png',            // player
+      '=': '/assets/art/door_template.png',          // door
+      '<': '/assets/art/Keycard.png',                // keycard
+      '?': '/assets/art/cardboard_box.png',          // interactable
+      'E': '/assets/art/attack_roomba.png',          // enemy
+      '^': '/assets/art/StairsVertical.png',         // staircase up
+      'v': '/assets/art/StairsVertical.png',         // staircase down
+      '@': '/assets/art/concrete_floor.png',         // start
+      'c': '/assets/art/Chest.png',                  // chest
+      'p': '/assets/art/cardboard_box.png'           // powerup
     };
 
     // Handle numbered wall variants
     if (baseChar === '#') {
-      if (suffix === '0') return '../assets/art/concrete_wall.png';
-      if (suffix === '1') return '../assets/art/wood_wall.png';
+      if (suffix === '0') return '/assets/art/concrete_wall.png';
+      if (suffix === '1') return '/assets/art/wood_wall.png';
       return spriteMap['#'];
     }
 
     // Handle numbered floor variants
     if (baseChar === ' ') {
-      if (suffix === '0') return '../assets/art/concrete_floor.png';
-      if (suffix === '1') return '../assets/art/wood_floor.png';
-      if (suffix === '2') return '../assets/art/green_carpet.png';
-      if (suffix === '3') return '../assets/art/tile_floor.png';
+      if (suffix === '0') return '/assets/art/concrete_floor.png';
+      if (suffix === '1') return '/assets/art/wood_floor.png';
+      if (suffix === '2') return '/assets/art/green_carpet.png';
+      if (suffix === '3') return '/assets/art/tile_floor.png';
       return spriteMap[' '];
     }
 
-    return spriteMap[baseChar] || '../assets/art/concrete_floor.png';
+    return spriteMap[baseChar] || '/assets/art/concrete_floor.png';
   }
 
   function draw(state) {
@@ -223,15 +236,16 @@
     if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
       const playerScreenX = (player.x - cameraX + 0.5) * TILE_SIZE;
       const playerScreenY = (player.y - cameraY + 0.5) * TILE_SIZE;
-      // const playerScreenX = ((player.x - cameraX) * TILE_SIZE + TILE_SIZE / 2) -450;
-      // const playerScreenY = ((player.y - cameraY) * TILE_SIZE + TILE_SIZE) -100;
       const visionRadius = 250; // how far the light reaches
-      const visionAngle = 360; // degrees (180° = semicircle)
-      const visionDirection = 0; // -90 = up, 0 = right, 90 = down, 180 = left
+      const visionAngle = 360; // degrees (360° = full circle)
+      const visionDirection = 0;
 
-      // Convert to radians and calculate start/end angles for 180° cone facing up
+      // Convert to radians and calculate start/end angles
       const startAngle = (visionDirection - visionAngle / 2) * (Math.PI / 180);
       const endAngle = (visionDirection + visionAngle / 2) * (Math.PI / 180);
+
+      // Clear overlay canvas
+      overlayCtx.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
       // Draw on overlay canvas: fill with dim, then cut out the vision cone
       overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -249,10 +263,8 @@
       // Reset composite operation
       overlayCtx.globalCompositeOperation = 'source-over';
 
-  // Draw the overlay canvas onto the main canvas.
-  // Specify destination width/height in CSS pixels so the main ctx transform
-  // (which scales by devicePixelRatio) doesn't double-scale the overlay.
-  ctx.drawImage(overlayCanvas, 0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+      // Draw the overlay canvas onto the main canvas
+      ctx.drawImage(overlayCanvas, 0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     } else {
       // If no player, just dim everything
       ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -295,9 +307,9 @@
       // Stop footstep audio when key is released
       footstepAudio.pause(); 
       footstepAudio.currentTime = 0;
-    })
+    });
+    
     window.addEventListener('keydown', (ev) => {
-      footstepAudio.play(); 
       // Don't send movement commands if paused
       if (isPaused) return;
       
@@ -313,7 +325,14 @@
       else if (ev.key === 's' || ev.key === 'ArrowDown') playerDirection = 180;  // down
       else if (ev.key === 'a' || ev.key === 'ArrowLeft') playerDirection = 270;  // left
       
-      if (mv && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ move: mv }));
+      if (mv) {
+        // Play footstep audio
+        footstepAudio.play();
+        
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ move: mv }));
+        }
+      }
     });
   }
 
@@ -328,31 +347,37 @@
   const resumeButton = document.getElementById('resumeButton');
   const menuButton = document.getElementById('menuButton');
 
-  pauseButton.addEventListener('click', () => {
-    isPaused = true;
-    pauseMenu.classList.remove('hidden');
-  });
+  if (pauseButton) {
+    pauseButton.addEventListener('click', () => {
+      isPaused = true;
+      pauseMenu.classList.remove('hidden');
+    });
+  }
 
-  resumeButton.addEventListener('click', () => {
-    isPaused = false;
-    pauseMenu.classList.add('hidden');
-  });
+  if (resumeButton) {
+    resumeButton.addEventListener('click', () => {
+      isPaused = false;
+      pauseMenu.classList.add('hidden');
+    });
+  }
 
-  menuButton.addEventListener('click', () => {
-    // Close websocket and redirect to menu
-    if (ws) ws.close();
-    window.location.href = 'index.html';
-  });
+  if (menuButton) {
+    menuButton.addEventListener('click', () => {
+      // Close websocket and redirect to menu
+      if (ws) ws.close();
+      window.location.href = 'index.html';
+    });
+  }
 
   // Also allow ESC key to toggle pause
   window.addEventListener('keydown', (ev) => {
     if (ev.key === 'Escape') {
       if (isPaused) {
         isPaused = false;
-        pauseMenu.classList.add('hidden');
+        if (pauseMenu) pauseMenu.classList.add('hidden');
       } else {
         isPaused = true;
-        pauseMenu.classList.remove('hidden');
+        if (pauseMenu) pauseMenu.classList.remove('hidden');
       }
     }
   });
@@ -360,4 +385,3 @@
   connect();
 
 })();
-
